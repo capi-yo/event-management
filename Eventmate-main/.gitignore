@@ -1,0 +1,72 @@
+# Dependencies - ignore node_modules in all directories
+**/node_modules/
+**/node_modules/*
+
+# Build outputs
+*/.next/
+*/out/
+*/build/
+*/*/.next/
+*/*/out/
+*/*/build/
+
+# Environment files - don't commit secrets
+*/*.env
+*/*.env.local
+*/*.env.*.local
+!*/*.env.example
+
+# Package lock files (optional - uncomment if you want to ignore)
+# */package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+*.pem
+
+# Kiro AI assistant files
+.kiro/
+
+# Documentation/Session files (development notes)
+AUTH_NAVBAR_IMPLEMENTATION.md
+AUTH_PAGES_UPDATE.md
+AUTH_PERSISTENCE_FIX.md
+AUTH_REFRESH_FINAL_FIX.md
+COMPLETE_SESSION_SUMMARY.md
+LANDING_PAGE_COLOR_FIX.md
+LEAFLET_MAP_FIX_SUMMARY.md
+MY_EVENTS_ENHANCEMENT.md
+NAVBAR_CONSISTENCY_FIX.md
+QUICK_FIX_REFERENCE.md
+REGISTRATION_ENDPOINT_FIX.md
+SESSION_SUMMARY.md
+SMOOTH_SCROLLING_IMPLEMENTATION.md
+TESTING_GUIDE.md
+
+# Uploaded files (user-generated content)
+backend/uploads/*
+!backend/uploads/.gitkeep
