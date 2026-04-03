@@ -240,7 +240,6 @@ function EventsList() {
                     className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 bg-white rounded-lg"
                   >
                     <div className="aspect-4/3 relative bg-gray-100 flex items-center justify-center overflow-hidden">
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={imageUrl}
                         alt={event.title}
