@@ -23,13 +23,9 @@ export interface ToastData {
     variant?: "default" | "success" | "destructive"
 }
 
-type ToastTimeout = {
-    duration: number
-    timeout: ReturnType<typeof setTimeout> | null
-}
-
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 3
+const TOAST_REMOVE_DELAY = 1000
+const DEFAULT_TOAST_DURATION = 5000
 
 type ToasterToast = ToastData & {
     id: string
@@ -76,7 +72,7 @@ interface State {
     toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map<string, ToastTimeout>()
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 const addToRemoveQueue = (toastId: string) => {
     if (toastTimeouts.has(toastId)) {
@@ -91,7 +87,7 @@ const addToRemoveQueue = (toastId: string) => {
         })
     }, TOAST_REMOVE_DELAY)
 
-    toastTimeouts.set(toastId, { duration: TOAST_REMOVE_DELAY, timeout })
+    toastTimeouts.set(toastId, timeout)
 }
 
 export const reducer = (state: State, action: Action): State => {
@@ -158,9 +154,7 @@ function dispatch(action: Action) {
     })
 }
 
-type ToastPropsData = Omit<ToasterToast, "id">
-
-function toast({ ...props }: Omit<ToasterToast, 'id'>) {
+function toast({ duration = DEFAULT_TOAST_DURATION, ...props }: Omit<ToasterToast, "id">) {
     const id = genId()
 
     const update = (props: ToasterToast) =>
@@ -175,12 +169,19 @@ function toast({ ...props }: Omit<ToasterToast, 'id'>) {
         toast: {
             ...props,
             id,
+            duration,
             open: true,
             onOpenChange: (open: boolean) => {
                 if (!open) dismiss()
             },
         },
     })
+
+    if (duration > 0) {
+        setTimeout(() => {
+            dismiss()
+        }, duration)
+    }
 
     return {
         id: id,
@@ -194,13 +195,14 @@ function useToast() {
 
     React.useEffect(() => {
         listeners.push(setState)
+        setState(memoryState)
         return () => {
             const index = listeners.indexOf(setState)
             if (index > -1) {
                 listeners.splice(index, 1)
             }
         }
-    }, [state])
+    }, [])
 
     return {
         ...state,

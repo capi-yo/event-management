@@ -31,6 +31,8 @@ const userValidation = {
             .trim()
             .isEmail()
             .withMessage('Valid email is required')
+            .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+            .withMessage('Email must be in a valid format (e.g., name@domain.com)')
             .normalizeEmail(),
         body('password')
             .isLength({ min: 6 })

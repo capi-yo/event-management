@@ -34,6 +34,10 @@ export function removeToken(): void {
     localStorage.removeItem('eventmate_token');
 }
 
+function isAuthError(message: string): boolean {
+    return message === 'Token expired' || message === 'Invalid token' || message === 'No token provided';
+}
+
 // Generic fetch wrapper
 async function fetchApi<T>(
     endpoint: string,
@@ -59,15 +63,9 @@ async function fetchApi<T>(
     if (response.status === 401) {
         const data = await response.json().catch(() => ({ message: 'Unauthorized' }));
         
-        // Only remove token and redirect if it's a token-related issue
-        if (data.message === 'Token expired' || 
-            data.message === 'Invalid token' || 
-            data.message === 'No token provided') {
+        if (isAuthError(data.message)) {
             removeToken();
             removeUser();
-            if (typeof window !== 'undefined') {
-                window.location.href = '/login';
-            }
         }
         
         const error: any = new Error(data.message || 'Unauthorized');
@@ -80,6 +78,7 @@ async function fetchApi<T>(
     if (!response.ok) {
         const error: any = new Error(data.message || 'An error occurred');
         error.errors = data.errors;
+        error.needsVerification = data.needsVerification;
         throw error;
     }
 
@@ -127,8 +126,32 @@ export const authApi = {
             body: JSON.stringify(userData),
         }),
 
+    verify: (email: string, code: string) =>
+        fetchApi<{ success: boolean; message: string }>('/auth/verify', {
+            method: 'POST',
+            body: JSON.stringify({ email, code }),
+        }),
+
     getCurrentUser: () =>
         fetchApi<{ success: boolean; data: { user: any } }>('/auth/me'),
+
+    forgotPassword: (email: string) =>
+        fetchApi<{ success: boolean; message: string }>('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        }),
+
+    resetPassword: (data: any) =>
+        fetchApi<{ success: boolean; message: string }>('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    resendOtp: (email: string, type: 'verification' | 'reset') =>
+        fetchApi<{ success: boolean; message: string }>('/auth/resend-otp', {
+            method: 'POST',
+            body: JSON.stringify({ email, type }),
+        }),
 };
 
 // ============ USER API ============
@@ -361,13 +384,9 @@ export const eventsApi = {
             if (res.status === 401) {
                 const data = await res.json().catch(() => ({ message: 'Unauthorized' }));
                 
-                // Only remove token and redirect if it's a token-related issue
-                if (data.message === 'Token expired' || 
-                    data.message === 'Invalid token' || 
-                    data.message === 'No token provided') {
+                if (isAuthError(data.message)) {
                     removeToken();
                     removeUser();
-                    if (typeof window !== 'undefined') window.location.href = '/login';
                 }
                 throw new Error(data.message || 'Unauthorized');
             }

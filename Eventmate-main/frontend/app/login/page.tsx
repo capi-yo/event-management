@@ -46,7 +46,11 @@ export default function LoginPage() {
                 router.push('/');
             }
         } catch (err: any) {
-            setError(err.message || 'Invalid email or password');
+            if (err.needsVerification) {
+                router.push(`/verify?email=${encodeURIComponent(email)}`);
+            } else {
+                setError(err.message || 'Invalid email or password');
+            }
         } finally {
             setLoading(false);
         }
@@ -84,9 +88,14 @@ export default function LoginPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="password" className="text-sm font-medium">
-                                    Password
-                                </label>
+                                <div className="flex items-center justify-between">
+                                    <label htmlFor="password" className="text-sm font-medium">
+                                        Password
+                                    </label>
+                                    <Link href="/forgot-password" className="text-xs text-crimson hover:underline">
+                                        Forgot password?
+                                    </Link>
+                                </div>
                                 <Input
                                     id="password"
                                     type="password"

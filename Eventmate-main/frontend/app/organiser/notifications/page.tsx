@@ -182,6 +182,7 @@ export default function OrganiserNotificationsPage() {
             setIsComposeOpen(false)
             setMessage('')
             setSelectedEventId('')
+            await fetchNotifications()
         } catch (err: any) {
             toast({
                 title: "Error",

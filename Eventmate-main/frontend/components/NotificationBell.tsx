@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
+import { useNotifications } from '@/components/NotificationProvider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,53 +12,24 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Bell, Check, Info, CheckCircle, AlertTriangle, XCircle, BellOff } from 'lucide-react';
-import { notificationsApi, Notification } from '@/lib/api';
+import type { Notification } from '@/lib/api';
 import { useTheme } from '@/components/theme-provider';
+
+function getNotificationsPagePath(role?: string) {
+    if (role === 'Organizer') return '/organiser/notifications';
+    if (role === 'Administrator') return '/admin/notifications';
+    return '/notifications';
+}
 
 export default function NotificationBell() {
     const { user } = useAuth();
     const { theme } = useTheme();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    useEffect(() => {
-        if (user) {
-            fetchNotifications();
-            // Poll for notifications every 30 seconds
-            const interval = setInterval(fetchNotifications, 30000);
-            return () => clearInterval(interval);
-        }
-    }, [user]);
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await notificationsApi.getMyNotifications();
-            if (response.success) {
-                setNotifications(response.data.notifications);
-                setUnreadCount(response.data.notifications.filter(n => !n.is_read).length);
-            }
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        }
-    };
-
-    const handleMarkAsRead = async (id: number) => {
-        try {
-            await notificationsApi.markAsRead(id);
-            fetchNotifications();
-        } catch (error) {
-            console.error('Failed to mark notification as read:', error);
-        }
-    };
-
-    const handleMarkAllAsRead = async () => {
-        try {
-            await notificationsApi.markAllAsRead();
-            fetchNotifications();
-        } catch (error) {
-            console.error('Failed to mark all as read:', error);
-        }
-    };
+    const {
+        notifications,
+        unreadCount,
+        markAsRead,
+        markAllAsRead,
+    } = useNotifications();
 
     const getTypeIcon = (message: string) => {
         const msg = message.toLowerCase();
@@ -100,7 +71,7 @@ export default function NotificationBell() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleMarkAllAsRead}
+                            onClick={() => void markAllAsRead()}
                             className="text-xs h-auto p-0 hover:bg-transparent text-[#AC1212] font-semibold"
                         >
                             Mark all as read
@@ -141,7 +112,7 @@ export default function NotificationBell() {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleMarkAsRead(notification.id);
+                                                void markAsRead(notification.id);
                                             }}
                                         >
                                             <Check className="h-3.5 w-3.5" />
@@ -163,7 +134,7 @@ export default function NotificationBell() {
                 {notifications.length > 0 && (
                     <>
                         <DropdownMenuSeparator className={theme === "dark" ? "bg-slate-800" : ""} />
-                        <Link href={user.role === 'Organizer' ? "/organiser/notifications" : "/profile"} className="block p-2">
+                        <Link href={getNotificationsPagePath(user.role)} className="block p-2">
                             <Button variant="ghost" className="w-full text-xs font-semibold py-1 h-8 text-muted-foreground hover:text-[#AC1212]">
                                 View all notifications
                             </Button>

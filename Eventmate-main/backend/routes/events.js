@@ -4,6 +4,7 @@ const { authenticate, optionalAuth } = require('../middleware/auth');
 const { isOrganizer } = require('../middleware/rbac');
 const { eventValidation, registrationValidation } = require('../middleware/validation');
 const { logger } = require('../utils/logger');
+const { createNotification } = require('../utils/notify');
 const multer = require('multer');
 const path = require('path');
 
@@ -740,6 +741,11 @@ router.post('/', authenticate, isOrganizer, eventValidation.create, async (req, 
             ipAddress: req.ip || req.connection.remoteAddress
         });
 
+        await createNotification(
+            req.user.id,
+            `Your event "${event.title}" has been submitted and is pending approval.`
+        );
+
         res.status(201).json({
             success: true,
             message: 'Event created successfully. Pending approval.',
@@ -807,6 +813,17 @@ router.put('/registrations/:id/status', authenticate, isOrganizer, async (req, r
         await db.query(
             'UPDATE registrations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
             [status, id]
+        );
+
+        const eventTitleResult = await db.query(
+            'SELECT title FROM events WHERE id = $1',
+            [registration.event_id]
+        );
+        const eventTitle = eventTitleResult.rows[0]?.title || 'your event';
+
+        await createNotification(
+            registration.user_id,
+            `Your registration for "${eventTitle}" is now ${status}.`
         );
 
         res.json({
@@ -1215,6 +1232,15 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
             ipAddress: req.ip || req.connection.remoteAddress
         });
 
+        await createNotification(
+            req.user.id,
+            `Ticket purchased for "${event.title}". Your registration is pending confirmation.`
+        );
+        await createNotification(
+            event.organizer_id,
+            `New ticket purchase for "${event.title}" (${ticketCategory.name}).`
+        );
+
         res.status(201).json({
             success: true,
             message: 'Ticket purchased successfully',
@@ -1300,6 +1326,22 @@ router.post('/:id/register', authenticate, async (req, res) => {
             details: { eventTitle: event.title, status },
             ipAddress: req.ip || req.connection.remoteAddress
         });
+
+        if (event.is_paid) {
+            await createNotification(
+                req.user.id,
+                `Registration started for "${event.title}". Complete payment to confirm your spot.`
+            );
+        } else {
+            await createNotification(
+                req.user.id,
+                `You have successfully registered for "${event.title}".`
+            );
+        }
+        await createNotification(
+            event.organizer_id,
+            `New registration for "${event.title}".`
+        );
 
         res.status(201).json({
             success: true,

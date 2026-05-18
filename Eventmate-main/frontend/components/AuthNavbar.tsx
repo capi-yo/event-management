@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import NotificationBell from '@/components/NotificationBell';
 
 const AuthNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -72,6 +73,8 @@ const AuthNavbar = () => {
               {link.name}
             </Link>
           ))}
+
+          <NotificationBell />
 
           {/* User Menu */}
           <DropdownMenu>
@@ -159,6 +162,10 @@ const AuthNavbar = () => {
                   {link.name}
                 </Link>
               ))}
+
+              <div className="flex justify-center py-2">
+                <NotificationBell />
+              </div>
 
               {/* Logout Button */}
               <button

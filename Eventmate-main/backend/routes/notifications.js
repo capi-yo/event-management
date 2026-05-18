@@ -11,7 +11,7 @@ const router = express.Router();
  * POST /notifications/send
  * Send notifications to users (Internal/Organizers) - BR-08
  */
-router.post('/send', authenticate, notificationValidation.send, async (req, res) => {
+router.post('/send', authenticate, isOrganizer, notificationValidation.send, async (req, res) => {
     try {
         const { user_id, event_id, message } = req.body;
 

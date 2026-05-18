@@ -47,20 +47,21 @@ export default function RegisterPage() {
             return;
         }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setError('Please enter a valid email address (e.g., name@domain.com)');
+            return;
+        }
+
         setLoading(true);
 
         try {
             await signUp(displayName, email, password, role);
-            // Get user from localStorage to determine redirect
-            const user = getUser();
-            if (user) {
-                const redirectUrl = getRedirectUrl(user.role);
-                router.push(redirectUrl);
-            } else {
-                router.push('/');
-            }
+            // Redirect to verify page
+            router.push(`/verify?email=${encodeURIComponent(email)}`);
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
+            // If the backend returns a specific error for email, it will be displayed
         } finally {
             setLoading(false);
         }

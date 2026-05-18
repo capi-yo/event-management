@@ -56,6 +56,7 @@ import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
 import { useToast } from '@/components/ui/use-toast'
 import LocationPicker from '@/components/LocationPicker'
+import LocationAutocomplete from '@/components/LocationAutocomplete'
 
 export default function OrganiserEventsPage() {
     const { theme } = useTheme()
@@ -506,11 +507,24 @@ export default function OrganiserEventsPage() {
                             </div>
                             <div>
                                 <label className={`text-sm font-medium ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Location</label>
-                                <Input
-                                    value={editFormData.location_venue || ''}
-                                    onChange={(e) => setEditFormData({ ...editFormData, location_venue: e.target.value })}
-                                    className={`mt-1 ${theme === "dark" ? "bg-slate-800 border-slate-700" : ""}`}
-                                />
+                                <div className="mt-1">
+                                    <LocationAutocomplete
+                                        value={editFormData.location_venue || ''}
+                                        onChange={(value) => setEditFormData({ ...editFormData, location_venue: value })}
+                                        onSelect={({ name, lat, lng, city, country }) => {
+                                            setEditFormData({
+                                                ...editFormData,
+                                                location_venue: name,
+                                                location_latitude: lat,
+                                                location_longitude: lng,
+                                                city: city || editFormData.city,
+                                                country: country || editFormData.country
+                                            })
+                                        }}
+                                        placeholder="Type venue or area name"
+                                        className={theme === "dark" ? "bg-slate-800 border-slate-700" : ""}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className={`text-sm font-medium ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Category</label>
@@ -534,11 +548,22 @@ export default function OrganiserEventsPage() {
                                 <LocationPicker
                                     latitude={editFormData.location_latitude}
                                     longitude={editFormData.location_longitude}
+                                    locationLabel={editFormData.location_venue || ''}
                                     onLocationSelect={(lat, lng) => {
                                         setEditFormData({ 
                                             ...editFormData, 
                                             location_latitude: lat,
                                             location_longitude: lng
+                                        });
+                                    }}
+                                    onPlaceSelect={({ display_name, lat, lng, city, country }) => {
+                                        setEditFormData({
+                                            ...editFormData,
+                                            location_venue: display_name,
+                                            location_latitude: lat,
+                                            location_longitude: lng,
+                                            city: city || editFormData.city,
+                                            country: country || editFormData.country,
                                         });
                                     }}
                                     height="300px"
