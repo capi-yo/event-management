@@ -55,10 +55,10 @@ export default function NotificationBell() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-[#AC1212] transition-colors">
+                <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-crimson transition-colors">
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-[#AC1212] text-white border-0 text-[10px] animate-in zoom-in duration-300">
+                        <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-crimson text-white border-0 text-[10px] animate-in zoom-in duration-300">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </Badge>
                     )}
@@ -72,7 +72,7 @@ export default function NotificationBell() {
                             variant="ghost"
                             size="sm"
                             onClick={() => void markAllAsRead()}
-                            className="text-xs h-auto p-0 hover:bg-transparent text-[#AC1212] font-semibold"
+                            className="text-xs h-auto p-0 hover:bg-transparent text-crimson font-semibold"
                         >
                             Mark all as read
                         </Button>
@@ -108,7 +108,7 @@ export default function NotificationBell() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-6 w-6 mt-0.5 text-muted-foreground hover:text-[#AC1212] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="h-6 w-6 mt-0.5 text-muted-foreground hover:text-crimson shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
@@ -135,7 +135,7 @@ export default function NotificationBell() {
                     <>
                         <DropdownMenuSeparator className={theme === "dark" ? "bg-slate-800" : ""} />
                         <Link href={getNotificationsPagePath(user.role)} className="block p-2">
-                            <Button variant="ghost" className="w-full text-xs font-semibold py-1 h-8 text-muted-foreground hover:text-[#AC1212]">
+                            <Button variant="ghost" className="w-full text-xs font-semibold py-1 h-8 text-muted-foreground hover:text-crimson">
                                 View all notifications
                             </Button>
                         </Link>

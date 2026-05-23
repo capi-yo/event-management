@@ -1,37 +1,37 @@
 "use client"
 
 import * as React from "react"
-import { useEffect } from "react"
+import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes"
 
-type Theme = "light" | "dark"
-
-function ThemeProvider({ children, defaultTheme = "light" }: { children: React.ReactNode; defaultTheme?: Theme }) {
-    const [theme, setTheme] = React.useState<Theme>(defaultTheme)
-
-    useEffect(() => {
-        const root = window.document.documentElement
-        root.classList.remove("light", "dark")
-        root.classList.add(theme)
-    }, [theme])
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === "light" ? "dark" : "light"))
-    }
-
-    return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            {children}
-        </ThemeContext.Provider>
-    )
+export function ThemeProvider({
+  children,
+  ...props
+}: React.ComponentProps<typeof NextThemesProvider>) {
+  return (
+    <NextThemesProvider 
+      attribute="class" 
+      defaultTheme="system" 
+      enableSystem 
+      disableTransitionOnChange 
+      {...props}
+    >
+      {children}
+    </NextThemesProvider>
+  )
 }
-
-const ThemeContext = React.createContext<{ theme: Theme; toggleTheme: () => void }>({
-    theme: "light",
-    toggleTheme: () => { },
-})
 
 export function useTheme() {
-    return React.useContext(ThemeContext)
-}
+    const { theme, setTheme, systemTheme } = useNextTheme()
+    
+    // Fallback to determine actual theme
+    const currentTheme = theme === "system" ? systemTheme : theme
 
-export { ThemeProvider }
+    const toggleTheme = () => {
+        setTheme(currentTheme === "light" ? "dark" : "light")
+    }
+
+    return {
+        theme: currentTheme || "light",
+        toggleTheme
+    }
+}

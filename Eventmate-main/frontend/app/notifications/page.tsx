@@ -31,7 +31,7 @@ export default function NotificationsPage() {
   if (authLoading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#AC1212]" />
+        <Loader2 className="h-8 w-8 animate-spin text-crimson" />
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function NotificationsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5 text-[#AC1212]" />
+                <Bell className="h-5 w-5 text-crimson" />
                 Recent
               </CardTitle>
             </CardHeader>

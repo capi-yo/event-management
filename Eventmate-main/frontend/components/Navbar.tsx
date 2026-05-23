@@ -5,6 +5,7 @@ import { Menu, X, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,22 +49,23 @@ const Navbar = () => {
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || isAuthPage ? 'glass-nav py-3' : isLandingPage ? 'bg-transparent py-5' : 'glass-nav py-3'}`}>
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-crimson rounded-lg flex items-center justify-center shadow-lg shadow-crimson/20">
+          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg ring-1 ring-habesha-gold/40">
             <Calendar className="text-white w-6 h-6" />
           </div>
-          <span className={`text-xl font-extrabold tracking-tighter font-display ${scrolled || !isLandingPage ? 'text-slate-900' : 'text-white'}`}>
+          <span className={`text-xl font-extrabold tracking-tighter font-display ${scrolled || !isLandingPage ? 'text-slate-900 dark:text-white' : 'text-white'}`}>
             Event<span className="text-crimson">Mate</span>
           </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
+          <ThemeToggle />
           {navLinks.map((link) => (
             isLandingPage && link.href.startsWith('#') ? (
               <a
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${scrolled || isAuthPage ? 'text-slate-900 hover:text-crimson' : 'text-white hover:text-crimson'}`}
+                className={`text-sm font-medium transition-colors ${scrolled || isAuthPage ? 'text-slate-900 dark:text-slate-100 hover:text-crimson' : 'text-white hover:text-crimson'}`}
               >
                 {link.name}
               </a>
@@ -71,7 +73,7 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${scrolled || !isLandingPage ? 'text-slate-900 hover:text-crimson' : 'text-white hover:text-crimson'}`}
+                className={`text-sm font-medium transition-colors ${scrolled || !isLandingPage ? 'text-slate-900 dark:text-slate-100 hover:text-crimson' : 'text-white hover:text-crimson'}`}
               >
                 {link.name}
               </Link>
@@ -85,8 +87,9 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)} className={scrolled || !isLandingPage ? 'text-slate-900' : 'text-white'}>
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => setIsOpen(!isOpen)} className={scrolled || !isLandingPage ? 'text-slate-900 dark:text-white' : 'text-white'}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>

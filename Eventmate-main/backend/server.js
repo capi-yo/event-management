@@ -16,6 +16,35 @@ const publicRoutes = require('./routes/public');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const http = require('http');
+const { Server } = require('socket.io');
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:3000', 'http://localhost:5173'],
+        credentials: true
+    }
+});
+
+// Initialize notify with the io instance
+const { setIo } = require('./utils/notify');
+setIo(io);
+
+io.on('connection', (socket) => {
+    console.log('Client connected to Socket.IO:', socket.id);
+
+    socket.on('join', (userId) => {
+        if (userId) {
+            socket.join(`user_${userId}`);
+            console.log(`Socket ${socket.id} joined room user_${userId}`);
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected from Socket.IO:', socket.id);
+    });
+});
+
 // Middleware
 const corsOptions = {
     origin: function (origin, callback) {
@@ -197,8 +226,8 @@ const startServer = async () => {
             }
         }
 
-        // Start the server
-        app.listen(PORT, () => {
+        // Start the server using http server instance (supports socket.io)
+        server.listen(PORT, () => {
             console.log(`\n========================================`);
             console.log(`Eventmate API Server Running`);
             console.log(`========================================`);

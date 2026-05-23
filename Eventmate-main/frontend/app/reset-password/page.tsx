@@ -4,21 +4,26 @@ import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
+import { validateEmail, validatePassword } from '@/lib/validations';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 
 function ResetPasswordContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
     const [token, setToken] = useState(''); // OTP Code
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -43,13 +48,37 @@ function ResetPasswordContent() {
         return () => clearTimeout(timer);
     }, [cooldown]);
 
+    const handleNextStep = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setMessage('');
+        setSuccessMessage('');
+
+        const emailError = validateEmail(email);
+        if (emailError) {
+            setErrorState(emailError);
+            return;
+        }
+
+        if (!token || token.length !== 6) {
+            setErrorState('Please enter the 6-digit OTP code.');
+            return;
+        }
+
+        setStep(2);
+    };
+
+    const handleBackStep = () => {
+        setStep(1);
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setErrorState('');
         setSuccessMessage('');
 
-        if (!email) {
-            setErrorState('Please enter your account email.');
+        const emailError = validateEmail(email);
+        if (emailError) {
+            setErrorState(emailError);
             return;
         }
 
@@ -58,8 +87,9 @@ function ResetPasswordContent() {
             return;
         }
 
-        if (password.length < 6) {
-            setErrorState('Password must be at least 6 characters.');
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+            setErrorState(passwordError);
             return;
         }
 
@@ -85,8 +115,9 @@ function ResetPasswordContent() {
     };
 
     const handleResendOtp = async () => {
-        if (!email) {
-            setErrorState('Please enter your email address first to resend OTP.');
+        const emailError = validateEmail(email);
+        if (emailError) {
+            setErrorState('Please enter a valid email address first to resend OTP.');
             return;
         }
 
@@ -112,18 +143,22 @@ function ResetPasswordContent() {
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    onClick={() => router.push('/login')} 
+                    onClick={step === 2 ? handleBackStep : () => router.push('/login')} 
                     className="h-8 w-8 rounded-full"
-                    title="Return to Login"
+                    title={step === 2 ? "Go back to OTP verification" : "Return to Login"}
                 >
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
             </div>
 
             <CardHeader className="space-y-1 text-center pt-8">
-                <CardTitle className="text-2xl">Reset Password</CardTitle>
+                <CardTitle className="text-2xl">
+                    {!successMessage && step === 1 ? 'Verify Reset Code' : 'Create New Password'}
+                </CardTitle>
                 <CardDescription>
-                    Enter your email, the OTP code sent to you, and your new password.
+                    {!successMessage && step === 1 
+                        ? 'Enter your email address and the 6-digit OTP code sent to your inbox.' 
+                        : 'Choose a secure new password for your EventMate account.'}
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
@@ -139,7 +174,7 @@ function ResetPasswordContent() {
                         </div>
                     )}
                     
-                    {!successMessage && (
+                    {!successMessage && step === 1 && (
                         <>
                             <div className="space-y-2">
                                 <label htmlFor="email" className="text-sm font-medium">
@@ -167,37 +202,63 @@ function ResetPasswordContent() {
                                     onChange={(e) => setToken(e.target.value)}
                                     maxLength={6}
                                     required
-                                    className="text-center font-bold tracking-widest text-lg"
+                                    className="text-center font-bold tracking-widest text-lg animate-fade-in"
                                     disabled={loading}
                                 />
                             </div>
+                        </>
+                    )}
+
+                    {!successMessage && step === 2 && (
+                        <>
                             <div className="space-y-2">
                                 <label htmlFor="password" className="text-sm font-medium">
                                     New Password
                                 </label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="Enter your new password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    disabled={loading}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your new password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        disabled={loading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                        title={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                                <PasswordStrengthIndicator password={password} />
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="confirmPassword" className="text-sm font-medium">
                                     Confirm New Password
                                 </label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    placeholder="Confirm your new password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    disabled={loading}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Confirm your new password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        disabled={loading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                        title={showConfirmPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showConfirmPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )}
@@ -205,33 +266,56 @@ function ResetPasswordContent() {
                 <CardFooter className="flex flex-col space-y-4 pt-6">
                     {!successMessage ? (
                         <>
-                            <Button type="submit" className="w-full bg-crimson hover:bg-crimson-dark" disabled={loading}>
-                                {loading ? 'Resetting password...' : 'Reset Password'}
-                            </Button>
-                            
-                            <div className="w-full flex items-center justify-between text-sm">
-                                <Button
-                                    type="button"
-                                    variant="link"
-                                    onClick={handleResendOtp}
-                                    disabled={cooldown > 0 || resendLoading}
-                                    className="text-crimson hover:underline p-0 h-auto font-medium"
+                            {step === 1 ? (
+                                <Button 
+                                    type="button" 
+                                    onClick={handleNextStep} 
+                                    className="w-full bg-crimson hover:bg-crimson-dark"
                                 >
-                                    {resendLoading ? (
-                                        <span className="flex items-center gap-1">
-                                            <Loader2 className="h-3 w-3 animate-spin" /> Sending...
-                                        </span>
-                                    ) : cooldown > 0 ? (
-                                        `Resend OTP in ${cooldown}s`
-                                    ) : (
-                                        'Resend OTP Code'
-                                    )}
+                                    Reset Password
                                 </Button>
-                                
-                                <Link href="/login" className="text-muted-foreground hover:underline font-medium">
-                                    Back to Login
-                                </Link>
-                            </div>
+                            ) : (
+                                <div className="w-full space-y-2">
+                                    <Button type="submit" className="w-full bg-crimson hover:bg-crimson-dark" disabled={loading}>
+                                        {loading ? 'Resetting password...' : 'Continue'}
+                                    </Button>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        onClick={handleBackStep} 
+                                        className="w-full border-zinc-200 hover:bg-zinc-50"
+                                        disabled={loading}
+                                    >
+                                        Back
+                                    </Button>
+                                </div>
+                            )}
+                            
+                            {step === 1 && (
+                                <div className="w-full flex items-center justify-between text-sm">
+                                    <Button
+                                        type="button"
+                                        variant="link"
+                                        onClick={handleResendOtp}
+                                        disabled={cooldown > 0 || resendLoading}
+                                        className="text-crimson hover:underline p-0 h-auto font-medium"
+                                    >
+                                        {resendLoading ? (
+                                            <span className="flex items-center gap-1">
+                                                <Loader2 className="h-3 w-3 animate-spin" /> Sending...
+                                            </span>
+                                        ) : cooldown > 0 ? (
+                                            `Resend OTP in ${cooldown}s`
+                                        ) : (
+                                            'Resend OTP Code'
+                                        )}
+                                    </Button>
+                                    
+                                    <Link href="/login" className="text-muted-foreground hover:underline font-medium">
+                                        Back to Login
+                                    </Link>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <Button 
@@ -252,7 +336,7 @@ export default function ResetPasswordPage() {
     return (
         <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 flex items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
+            <main className="flex-1 flex items-center justify-center habesha-surface px-4 py-12">
                 <Suspense fallback={<div>Loading reset details...</div>}>
                     <ResetPasswordContent />
                 </Suspense>

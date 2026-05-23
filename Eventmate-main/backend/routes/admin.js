@@ -4,6 +4,7 @@ const { authenticate } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/rbac');
 const { adminValidation } = require('../middleware/validation');
 const { logger } = require('../utils/logger');
+const { createNotification } = require('../utils/notify');
 
 const router = express.Router();
 
@@ -117,9 +118,11 @@ router.patch('/events/:id/status', adminValidation.updateEventStatus, async (req
             [status, id]
         );
 
-        await db.query(
-            'INSERT INTO notifications (user_id, message) VALUES ($1, $2)',
-            [event.organizer_id, 'Your event "' + event.title + '" has been ' + status.toLowerCase() + '.']
+        await createNotification(
+            event.organizer_id,
+            'Your event "' + event.title + '" has been ' + status.toLowerCase() + '.',
+            null,
+            'Organizer'
         );
 
         res.json({ success: true, message: 'Event ' + status.toLowerCase() + ' successfully', data: { event: result.rows[0] } });

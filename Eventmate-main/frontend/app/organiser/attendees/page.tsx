@@ -50,9 +50,11 @@ import {
     ChevronLeft,
     ChevronRight
 } from "lucide-react"
+import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
 
 export default function OrganiserAttendeesPage() {
+    const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
     const { toast } = useToast()
     const [searchQuery, setSearchQuery] = useState('')
@@ -82,6 +84,9 @@ export default function OrganiserAttendeesPage() {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+                return
+            }
             try {
                 setLoading(true)
                 const [eventsRes, regRes] = await Promise.all([
@@ -107,7 +112,7 @@ export default function OrganiserAttendeesPage() {
             }
         }
         fetchData()
-    }, [eventFilter, statusFilter, currentPage])
+    }, [eventFilter, statusFilter, currentPage, user, authLoading])
 
     const filteredAttendees = attendees.filter(attendee => {
         const matchesSearch = attendee.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -182,6 +187,18 @@ export default function OrganiserAttendeesPage() {
         } finally {
             setExporting(false)
         }
+    }
+
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-crimson" />
+            </div>
+        )
+    }
+
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+        return null
     }
 
     return (
@@ -300,7 +317,7 @@ export default function OrganiserAttendeesPage() {
                 <CardContent>
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-[#AC1212] mb-4" />
+                            <Loader2 className="h-8 w-8 animate-spin text-crimson mb-4" />
                             <p className="text-muted-foreground">Loading attendees...</p>
                         </div>
                     ) : error ? (
@@ -556,7 +573,7 @@ export default function OrganiserAttendeesPage() {
                                         </div>
                                         <div>
                                             <p className={`text-xs uppercase tracking-widest font-bold ${theme === "dark" ? "text-slate-500" : "text-muted-foreground"}`}>Transaction Ref</p>
-                                            <p className={`font-mono text-sm font-bold mt-1 text-[#AC1212]`}>{selectedAttendee.transaction_ref}</p>
+                                            <p className={`font-mono text-sm font-bold mt-1 text-crimson`}>{selectedAttendee.transaction_ref}</p>
                                         </div>
                                     </>
                                 )}

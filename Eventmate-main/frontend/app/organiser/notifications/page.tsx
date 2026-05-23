@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/components/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -60,6 +61,7 @@ import {
 } from "@/components/ui/tooltip"
 
 export default function OrganiserNotificationsPage() {
+    const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
     const { toast } = useToast()
     const [notifications, setNotifications] = useState<Notification[]>([])
@@ -80,9 +82,12 @@ export default function OrganiserNotificationsPage() {
     const [sending, setSending] = useState(false)
 
     useEffect(() => {
+        if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+            return
+        }
         fetchNotifications()
         fetchInitialData()
-    }, []);
+    }, [user, authLoading]);
 
     const fetchInitialData = async () => {
         try {
@@ -100,7 +105,7 @@ export default function OrganiserNotificationsPage() {
     const fetchNotifications = async () => {
         try {
             setLoading(true)
-            const response = await notificationsApi.getMyNotifications()
+            const response = await notificationsApi.getMyNotifications('Organizer')
             if (response.success) {
                 setNotifications(response.data.notifications)
             }
@@ -110,6 +115,18 @@ export default function OrganiserNotificationsPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    if (authLoading) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-crimson" />
+            </div>
+        )
+    }
+
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+        return null
     }
 
     const filteredNotifications = notifications.filter(n => {
@@ -215,7 +232,7 @@ export default function OrganiserNotificationsPage() {
     if (loading) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#AC1212]" />
+                <Loader2 className="h-8 w-8 animate-spin text-crimson" />
             </div>
         )
     }
@@ -231,7 +248,7 @@ export default function OrganiserNotificationsPage() {
                 <div className="flex gap-2">
                     <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-[#AC1212] hover:bg-[#8a0f0f] text-white shadow-lg shadow-red-900/10">
+                            <Button className="bg-crimson hover:bg-crimson-dark text-white shadow-lg shadow-red-900/10">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Compose
                             </Button>
@@ -267,7 +284,7 @@ export default function OrganiserNotificationsPage() {
                                         <label className={`text-sm font-semibold ${theme === "dark" ? "text-slate-200" : ""}`}>Message</label>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm" className="h-7 text-xs font-semibold text-[#AC1212] hover:bg-[#AC1212]/10 transition-colors">
+                                                <Button variant="ghost" size="sm" className="h-7 text-xs font-semibold text-crimson hover:bg-crimson/10 transition-colors">
                                                     Use Template
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -292,7 +309,7 @@ export default function OrganiserNotificationsPage() {
                                     </div>
                                     <Textarea
                                         placeholder="Type your message here..."
-                                        className={`min-h-[120px] resize-none ${theme === "dark" ? "bg-slate-800 border-slate-700 text-slate-100 focus:ring-red-600" : "focus:ring-[#AC1212]"}`}
+                                        className={`min-h-[120px] resize-none ${theme === "dark" ? "bg-slate-800 border-slate-700 text-slate-100 focus:ring-red-600" : "focus:ring-crimson"}`}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
                                     />
@@ -314,7 +331,7 @@ export default function OrganiserNotificationsPage() {
                                 <Button
                                     onClick={handleSend}
                                     disabled={sending || !selectedEventId || !message.trim()}
-                                    className="bg-[#AC1212] hover:bg-[#8a0f0f] text-white min-w-[100px]"
+                                    className="bg-crimson hover:bg-crimson-dark text-white min-w-[100px]"
                                 >
                                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-2" /> Send</>}
                                 </Button>
@@ -442,7 +459,7 @@ export default function OrganiserNotificationsPage() {
                 <DialogContent className={`sm:max-w-[500px] ${theme === "dark" ? "bg-slate-900 border-slate-800" : ""}`}>
                     <DialogHeader>
                         <DialogTitle className={`flex items-center gap-2 ${theme === "dark" ? "text-slate-100" : ""}`}>
-                            <Bell className="h-5 w-5 text-[#AC1212]" />
+                            <Bell className="h-5 w-5 text-crimson" />
                             Notification Details
                         </DialogTitle>
                         <DialogDescription className={theme === "dark" ? "text-slate-400" : ""}>
@@ -476,7 +493,7 @@ export default function OrganiserNotificationsPage() {
                     <DialogFooter>
                         <Button
                             onClick={() => setIsDetailsOpen(false)}
-                            className="bg-[#AC1212] hover:bg-[#8a0f0f] text-white"
+                            className="bg-crimson hover:bg-crimson-dark text-white"
                         >
                             Close
                         </Button>

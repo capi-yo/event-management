@@ -27,9 +27,11 @@ import {
     CheckCircle,
     Loader2
 } from "lucide-react"
+import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
 
 export default function OrganiserAnalyticsPage() {
+    const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
     const [timeRange, setTimeRange] = useState('7days')
     const [stats, setStats] = useState<any>(null)
@@ -51,8 +53,11 @@ export default function OrganiserAnalyticsPage() {
                 setLoading(false)
             }
         }
+        if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+            return
+        }
         fetchStats()
-    }, [])
+    }, [user, authLoading])
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ETB' }).format(amount || 0);
@@ -62,12 +67,16 @@ export default function OrganiserAnalyticsPage() {
         return new Intl.NumberFormat('en-US').format(num || 0);
     }
 
-    if (loading) {
+    if (authLoading) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#AC1212]" />
+                <Loader2 className="h-8 w-8 animate-spin text-crimson" />
             </div>
         )
+    }
+
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+        return null
     }
 
     return (

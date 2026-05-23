@@ -16,7 +16,7 @@ const Hero = () => {
           alt="Vibrant music festival crowd" 
           className="w-full h-full object-cover brightness-50"
         />
-        <div className="absolute inset-0 backdrop-brightness-75 bg-black/30" />
+        <div className="absolute inset-0 backdrop-brightness-75 bg-gradient-to-br from-habesha-green/80 via-black/50 to-habesha-red/40" />
       </div>
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full">
@@ -27,7 +27,7 @@ const Hero = () => {
           className="max-w-3xl"
         >
           <h1 className="text-5xl md:text-8xl font-extrabold leading-[1.1] mb-6 font-display text-white">
-            Where <span className="text-crimson">Vision</span> Meets <br />
+            Where <span className="text-habesha-gold">Vision</span> Meets <br />
             Celebration.
           </h1>
           
@@ -39,7 +39,7 @@ const Hero = () => {
           <div className="flex flex-wrap gap-4">
             <button 
               onClick={() => router.push('/register')}
-              className="px-10 py-5 rounded-none bg-crimson text-white font-bold flex items-center gap-2 shadow-2xl shadow-crimson/30 hover:bg-crimson-dark transition-all transform hover:-translate-y-1 cursor-pointer"
+              className="px-10 py-5 rounded-md bg-crimson text-white font-bold flex items-center gap-2 shadow-2xl shadow-crimson/30 hover:bg-crimson-dark transition-all transform hover:-translate-y-1 cursor-pointer ring-1 ring-habesha-gold/50"
             >
               Explore Events <ArrowRight size={20} />
             </button>

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import NotificationBell from '@/components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const AuthNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,13 +54,14 @@ const AuthNavbar = () => {
           <div className="w-10 h-10 bg-crimson rounded-lg flex items-center justify-center shadow-lg shadow-crimson/20">
             <Calendar className="text-white w-6 h-6" />
           </div>
-          <span className="text-xl font-extrabold tracking-tighter font-display text-slate-900">
+          <span className="text-xl font-extrabold tracking-tighter font-display text-slate-900 dark:text-white">
             Event<span className="text-crimson">Mate</span>
           </span>
         </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
+          <ThemeToggle />
           {navLinks.map((link) => (
             <Link
               key={link.name}
@@ -67,7 +69,7 @@ const AuthNavbar = () => {
               className={`text-sm font-medium transition-colors ${
                 isActive(link.href)
                   ? 'text-crimson font-bold'
-                  : 'text-slate-900 hover:text-crimson'
+                  : 'text-slate-900 dark:text-slate-100 hover:text-crimson dark:hover:text-crimson'
               }`}
             >
               {link.name}
@@ -84,7 +86,7 @@ const AuthNavbar = () => {
                   {user?.name ? getInitials(user.name) : 'U'}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium text-slate-900 hidden lg:block">
+              <span className="text-sm font-medium text-slate-900 dark:text-slate-100 hidden lg:block">
                 {user?.name || 'User'}
               </span>
             </DropdownMenuTrigger>
@@ -111,7 +113,7 @@ const AuthNavbar = () => {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 rounded-none bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition-all duration-300 flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2 rounded-md bg-crimson text-white font-semibold text-sm hover:bg-crimson-dark transition-all duration-300 flex items-center gap-2 cursor-pointer ring-1 ring-habesha-gold/30"
           >
             <LogOut size={16} />
             Logout
@@ -119,8 +121,9 @@ const AuthNavbar = () => {
         </div>
 
         {/* Mobile Toggle */}
-        <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)} className="text-slate-900">
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => setIsOpen(!isOpen)} className="text-slate-900 dark:text-white">
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
@@ -173,7 +176,7 @@ const AuthNavbar = () => {
                   setIsOpen(false);
                   handleLogout();
                 }}
-                className="w-full py-3 rounded-none bg-red-600 text-white font-bold mt-2 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-md bg-crimson text-white font-bold mt-2 flex items-center justify-center gap-2 hover:bg-crimson-dark"
               >
                 <LogOut size={18} />
                 Logout

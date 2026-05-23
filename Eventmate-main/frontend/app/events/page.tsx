@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Calendar, MapPin, Search, Heart, Loader2 } from "lucide-react";
 import { eventsApi, favoritesApi, Event, API_BASE_URL } from "@/lib/api";
+import PriceDisplay from "@/components/PriceDisplay";
 import { useAuth } from "@/components/AuthContext";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
@@ -186,7 +187,7 @@ function EventsList() {
                     onClick={() => setSelectedCategory(category)}
                     className={
                       selectedCategory === category
-                        ? "bg-[#AC1212] hover:bg-[#8a0f0f]"
+                        ? "bg-crimson hover:bg-crimson-dark"
                         : ""
                     }
                   >
@@ -200,7 +201,7 @@ function EventsList() {
           {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#AC1212] mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson mx-auto"></div>
               <p className="mt-4 text-muted-foreground">Loading events...</p>
             </div>
           )}
@@ -298,6 +299,12 @@ function EventsList() {
                             </span>
                           </div>
                         </div>
+                        <PriceDisplay
+                          price={event.min_price}
+                          discountType={event.discount_type}
+                          discountValue={event.discount_value}
+                          size="sm"
+                        />
                       </div>
                       <Button
                         className="w-full h-11 text-sm font-bold bg-[#DC143C] text-white hover:bg-[#B01030] transition-all duration-200 border-0 rounded-none uppercase tracking-wide shadow-sm hover:shadow-md cursor-pointer"

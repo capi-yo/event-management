@@ -198,6 +198,9 @@ export interface Event {
     created_at: string;
     updated_at: string;
     registration_count?: number;
+    min_price?: number;
+    discount_type?: string;
+    discount_value?: number;
 }
 
 export interface EventsResponse {
@@ -343,7 +346,7 @@ export const eventsApi = {
         );
     },
 
-    updateTicketCategory: (ticketId: number, data: { name: string; price: string; capacity: string }) =>
+    updateTicketCategory: (ticketId: number, data: { name: string; price: string; capacity: string; discount_type?: string; discount_value?: string }) =>
         fetchApi<{ success: boolean; message: string }>(`/events/ticket-categories/${ticketId}`, {
             method: 'PUT',
             body: JSON.stringify(data),
@@ -414,7 +417,7 @@ export const registrationsApi = {
             method: 'POST',
         }),
 
-    purchase: (eventId: number, data: { ticket_category_id: number, payment_method: string }) =>
+    purchase: (eventId: number, data: { ticket_category_id: number; payment_method: string; transaction_ref: string }) =>
         fetchApi<{ success: boolean }>(`/events/${eventId}/purchase`, {
             method: 'POST',
             body: JSON.stringify(data),
@@ -473,8 +476,10 @@ export interface Notification {
 }
 
 export const notificationsApi = {
-    getMyNotifications: () =>
-        fetchApi<{ success: boolean; data: { notifications: Notification[] } }>('/user/notifications'),
+    getMyNotifications: (role?: string) =>
+        fetchApi<{ success: boolean; data: { notifications: Notification[] } }>(
+            role ? `/user/notifications?role=${role}` : '/user/notifications'
+        ),
 
     markAsRead: (notificationId: number) =>
         fetchApi<{ success: boolean }>(`/user/notifications/${notificationId}/read`, {

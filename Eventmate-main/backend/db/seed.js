@@ -28,23 +28,23 @@ async function seed() {
         // Admin user
         const adminPassword = await bcrypt.hash('admin123', 10);
         await client.query(
-            `INSERT INTO users (name, email, password_hash, role) 
-       VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`,
+            `INSERT INTO users (name, email, password_hash, role, is_verified) 
+       VALUES ($1, $2, $3, $4, TRUE) ON CONFLICT (email) DO NOTHING`,
             ['Admin User', 'admin@eventmate.com', adminPassword, 'Administrator']
         );
 
         // Organizer user
         const organizerPassword = await bcrypt.hash('organizer123', 10);
         await client.query(
-            `INSERT INTO users (name, email, password_hash, role) 
-       VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`,
+            `INSERT INTO users (name, email, password_hash, role, is_verified) 
+       VALUES ($1, $2, $3, $4, TRUE) ON CONFLICT (email) DO NOTHING`,
             ['John Organizer', 'organizer@eventmate.com', organizerPassword, 'Organizer']
         );
 
         // Another Organizer
         await client.query(
-            `INSERT INTO users (name, email, password_hash, role) 
-       VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`,
+            `INSERT INTO users (name, email, password_hash, role, is_verified) 
+       VALUES ($1, $2, $3, $4, TRUE) ON CONFLICT (email) DO NOTHING`,
             ['Sarah Events', 'sarah@eventmate.com', organizerPassword, 'Organizer']
         );
 
@@ -60,8 +60,8 @@ async function seed() {
 
         for (const user of users) {
             await client.query(
-                `INSERT INTO users (name, email, password_hash, role) 
-         VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`,
+                `INSERT INTO users (name, email, password_hash, role, is_verified) 
+         VALUES ($1, $2, $3, $4, TRUE) ON CONFLICT (email) DO NOTHING`,
                 [user.name, user.email, userPassword, 'Registered User']
             );
         }

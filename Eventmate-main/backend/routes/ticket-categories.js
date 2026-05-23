@@ -10,7 +10,7 @@ const { authenticate, isOrganizer } = require('../middleware/auth');
 router.put('/:id', authenticate, isOrganizer, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, capacity } = req.body;
+        const { name, price, capacity, discount_type, discount_value } = req.body;
 
         // Validate input
         if (!name || name.trim() === '') {
@@ -31,6 +31,37 @@ router.put('/:id', authenticate, isOrganizer, async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'Capacity must be a non-negative integer'
+            });
+        }
+
+        const finalDiscountType = discount_type || 'none';
+        const finalDiscountValue = discount_value !== undefined && discount_value !== null ? parseFloat(discount_value) : 0;
+
+        if (finalDiscountType !== 'none' && finalDiscountType !== 'percentage' && finalDiscountType !== 'fixed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid discount type. Must be none, percentage, or fixed'
+            });
+        }
+
+        if (isNaN(finalDiscountValue) || finalDiscountValue < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Discount value must be a non-negative number'
+            });
+        }
+
+        if (finalDiscountType === 'percentage' && finalDiscountValue > 100) {
+            return res.status(400).json({
+                success: false,
+                message: 'Percentage discount cannot exceed 100%'
+            });
+        }
+
+        if (finalDiscountType === 'fixed' && finalDiscountValue > parseFloat(price)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Fixed discount cannot exceed the ticket price'
             });
         }
 
@@ -60,10 +91,10 @@ router.put('/:id', authenticate, isOrganizer, async (req, res) => {
         // Update the ticket category
         const result = await db.query(
             `UPDATE ticket_categories 
-             SET name = $1, price = $2, capacity = $3, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $4
+             SET name = $1, price = $2, capacity = $3, discount_type = $4, discount_value = $5, created_at = CURRENT_TIMESTAMP
+             WHERE id = $6
              RETURNING *`,
-            [name.trim(), parseFloat(price), parseInt(capacity), id]
+            [name.trim(), parseFloat(price), parseInt(capacity), finalDiscountType, finalDiscountValue, id]
         );
 
         res.json({

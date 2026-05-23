@@ -61,9 +61,7 @@ function NavItem({ href, label, icon: Icon, isActive, badge, onClick }: { href: 
             className={cn(
                 "flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 isActive
-                    ? theme === "dark"
-                        ? "bg-[#AC1212] text-white shadow-md"
-                        : "bg-[#AC1212] text-white shadow-md"
+                    ? "bg-primary text-primary-foreground shadow-md ring-1 ring-habesha-gold/30"
                     : theme === "dark"
                         ? "text-slate-300 hover:bg-slate-800 hover:text-white"
                         : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -328,7 +326,7 @@ export default function OrganiserLayout({
     }, [router])
 
     return (
-        <div className="min-h-screen bg-muted/50">
+        <div className="min-h-screen page-shell">
             {/* Mobile Header */}
             <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-16 bg-background border-b shadow-sm flex items-center justify-between px-4">
                 <div className="flex items-center gap-2">

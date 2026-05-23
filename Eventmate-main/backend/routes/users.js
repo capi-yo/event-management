@@ -209,13 +209,18 @@ router.get('/my-events', authenticate, async (req, res) => {
  */
 router.get('/notifications', authenticate, async (req, res) => {
     try {
-        const result = await db.query(
-            `SELECT * FROM notifications 
-             WHERE user_id = $1 
-             ORDER BY sent_at DESC 
-             LIMIT 50`,
-            [req.user.id]
-        );
+        const { role } = req.query;
+        let query = 'SELECT * FROM notifications WHERE user_id = $1';
+        const params = [req.user.id];
+
+        if (role) {
+            query += ' AND role = $2';
+            params.push(role);
+        }
+
+        query += ' ORDER BY sent_at DESC LIMIT 50';
+
+        const result = await db.query(query, params);
 
         res.json({
             success: true,

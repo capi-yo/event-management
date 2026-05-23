@@ -47,7 +47,7 @@ import { eventsApi } from "@/lib/api";
 export default function OrganiserCreateEventPage() {
   const { theme } = useTheme();
   const router = useRouter();
-  const { user, userData } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -75,9 +75,17 @@ export default function OrganiserCreateEventPage() {
   });
 
   // Redirect if not organizer or admin
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson"></div>
+      </div>
+    );
+  }
+
   if (
     !user ||
-    (userData?.role !== "Organizer" && userData?.role !== "Administrator")
+    (user.role !== "Organizer" && user.role !== "Administrator")
   ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -86,7 +94,7 @@ export default function OrganiserCreateEventPage() {
           <p className="text-muted-foreground mb-4">
             You need to be an organizer to create events.
           </p>
-          <Button asChild className="bg-[#AC1212] hover:bg-[#8a0f0f]">
+          <Button asChild className="bg-crimson hover:bg-crimson-dark">
             <Link href="/">Go Home</Link>
           </Button>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Check, Crosshair, Loader2, MapPin, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,19 @@ export default function LocationPicker({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locating, setLocating] = useState(false);
   const [confirmedLabel, setConfirmedLabel] = useState(locationLabel);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const [marker, setMarker] = useState<[number, number] | null>(
     latitude != null && longitude != null ? [latitude, longitude] : null,
@@ -63,7 +76,7 @@ export default function LocationPicker({
 
   const applyPlace = useCallback(
     (place: GeocodedPlace) => {
-      setSearchQuery(place.display_name);
+      setSearchQuery(place.venue);
       setConfirmedLabel(place.display_name);
       setSuggestions([]);
       setShowSuggestions(false);
@@ -206,9 +219,23 @@ export default function LocationPicker({
       setSearchError("Select a place from search or click on the map first.");
       return;
     }
-    setConfirmedLabel(searchQuery.trim() || confirmedLabel);
+    const label = searchQuery.trim() || confirmedLabel || `${marker[0].toFixed(5)}, ${marker[1].toFixed(5)}`;
+    setConfirmedLabel(label);
     setShowSuggestions(false);
     setSearchError("");
+
+    // Propagate selection to the parent form to ensure values are captured
+    onLocationSelect(marker[0], marker[1]);
+    if (onPlaceSelect) {
+      onPlaceSelect({
+        venue: label.split(",")[0].trim(),
+        display_name: label,
+        lat: marker[0],
+        lng: marker[1],
+        city: "",
+        country: ""
+      });
+    }
   };
 
   if (!mounted) {
@@ -227,65 +254,79 @@ export default function LocationPicker({
 
   return (
     <div className="space-y-3">
-      <form onSubmit={handleSearchSubmit} className="relative z-[1001] flex gap-2">
-        <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => {
-              if (suggestions.length > 0) setShowSuggestions(true);
-            }}
-            placeholder="Search location (e.g. Addis Ababa Bole Medhanealem)"
-            className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-slate-900"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setSuggestions([]);
-                setShowSuggestions(false);
-                setSearchError("");
-              }}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full right-0 left-0 z-[1002] mt-1 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
-              {suggestions.map((place) => (
-                <button
-                  key={`${place.lat}-${place.lng}-${place.display_name}`}
-                  type="button"
-                  className="w-full border-b px-4 py-2 text-left text-sm last:border-b-0 hover:bg-slate-50"
-                  onClick={() => applyPlace(place)}
-                >
-                  {place.display_name}
-                </button>
-              ))}
+      <div ref={containerRef} className="relative w-full z-[10002]">
+        <form onSubmit={handleSearchSubmit} className="flex gap-2">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="h-4 w-4 text-gray-400" />
             </div>
-          )}
-        </div>
-        <Button
-          type="submit"
-          disabled={searching}
-          className="bg-slate-900 text-white hover:bg-slate-800"
-        >
-          {searching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Search"
-          )}
-        </Button>
-      </form>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => {
+                if (suggestions.length > 0) setShowSuggestions(true);
+              }}
+              placeholder="Search location (e.g. Addis Ababa Bole Medhanealem)"
+              className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSuggestions([]);
+                  setShowSuggestions(false);
+                  setSearchError("");
+                }}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full right-0 left-0 z-[10003] mt-1 max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                {suggestions.map((place) => {
+                  let subAddress = place.display_name;
+                  if (subAddress.startsWith(place.venue)) {
+                    subAddress = subAddress.substring(place.venue.length).replace(/^[,\s]+/, "");
+                  }
+
+                  return (
+                    <button
+                      key={`${place.lat}-${place.lng}-${place.display_name}`}
+                      type="button"
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition flex flex-col gap-0.5"
+                      onClick={() => applyPlace(place)}
+                    >
+                      <span className="font-semibold text-slate-800">{place.venue}</span>
+                      {subAddress && (
+                        <span className="text-xs text-slate-400 truncate max-w-full">{subAddress}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <Button
+            type="submit"
+            disabled={searching}
+            className="bg-slate-900 text-white hover:bg-slate-800"
+          >
+            {searching ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Search"
+            )}
+          </Button>
+        </form>
+      </div>
 
       {searchError && <p className="text-sm text-red-600">{searchError}</p>}
 

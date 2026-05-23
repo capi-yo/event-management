@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { registrationsApi, Event } from '@/lib/api';
+import PriceDisplay from '@/components/PriceDisplay';
 import { useToast } from '@/components/ui/use-toast';
 import { Check, Loader2, ShieldCheck, Ticket, Landmark, Smartphone, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -61,6 +62,21 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
 
     const selectedCategory = categories.find(c => c.id === selectedCategoryId);
     const activeBank = PAYMENT_OPTIONS.find(p => p.id === selectedPaymentMethod);
+
+    const getFinalPrice = (cat: any) => {
+        if (!cat) return 0;
+        const base = parseFloat(cat.price) || 0;
+        const val = parseFloat(cat.discount_value) || 0;
+        if (cat.discount_type === 'percentage') {
+            return base * (1 - val / 100);
+        } else if (cat.discount_type === 'fixed') {
+            return Math.max(0, base - val);
+        }
+        return base;
+    };
+
+    const finalPrice = selectedCategory ? getFinalPrice(selectedCategory) : 0;
+    const formattedFinalPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ETB' }).format(finalPrice);
 
     const handlePurchase = async () => {
         if (!selectedCategoryId) return;
@@ -126,7 +142,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                             {/* Step 1: Ticket Selection */}
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-8 h-8 rounded-full bg-[#AC1212] text-white flex items-center justify-center font-bold text-sm">1</div>
+                                    <div className="w-8 h-8 rounded-full bg-crimson text-white flex items-center justify-center font-bold text-sm">1</div>
                                     <h3 className="font-bold text-lg">Select Ticket Category</h3>
                                 </div>
                                 <div className="space-y-3 pl-11">
@@ -137,17 +153,22 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                                             className={cn(
                                                 "p-4 rounded-2xl border-2 transition-all cursor-pointer flex justify-between items-center",
                                                 selectedCategoryId === cat.id
-                                                    ? "border-[#AC1212] bg-[#AC1212]/5 ring-4 ring-[#AC1212]/10"
+                                                    ? "border-crimson bg-crimson/5 ring-4 ring-crimson/10"
                                                     : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                                             )}
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className={cn("p-2 rounded-xl", selectedCategoryId === cat.id ? "bg-[#AC1212]/10" : "bg-zinc-100 dark:bg-zinc-800")}>
-                                                    <Ticket className={cn("h-5 w-5", selectedCategoryId === cat.id ? "text-[#AC1212]" : "text-zinc-400")} />
+                                                <div className={cn("p-2 rounded-xl", selectedCategoryId === cat.id ? "bg-crimson/10" : "bg-zinc-100 dark:bg-zinc-800")}>
+                                                    <Ticket className={cn("h-5 w-5", selectedCategoryId === cat.id ? "text-crimson" : "text-zinc-400")} />
                                                 </div>
                                                 <span className="font-bold text-lg">{cat.name}</span>
                                             </div>
-                                            <span className="font-black text-xl text-zinc-900 dark:text-white">ETB {parseFloat(cat.price).toFixed(2)}</span>
+                                            <PriceDisplay
+                                                price={cat.price}
+                                                discountType={cat.discount_type}
+                                                discountValue={cat.discount_value}
+                                                size="sm"
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -156,7 +177,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                             {/* Step 2: Payment Method */}
                             <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-8 h-8 rounded-full bg-[#AC1212] text-white flex items-center justify-center font-bold text-sm">2</div>
+                                    <div className="w-8 h-8 rounded-full bg-crimson text-white flex items-center justify-center font-bold text-sm">2</div>
                                     <h3 className="font-bold text-lg">Select Payment Method</h3>
                                 </div>
 
@@ -170,7 +191,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                                                 className={cn(
                                                     "p-4 rounded-2xl border-2 text-center transition-all cursor-pointer flex flex-col items-center gap-3",
                                                     selectedPaymentMethod === option.id
-                                                        ? "border-[#AC1212] bg-[#AC1212]/5 ring-4 ring-[#AC1212]/10"
+                                                        ? "border-crimson bg-crimson/5 ring-4 ring-crimson/10"
                                                         : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                                                 )}
                                             >
@@ -187,7 +208,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                                 {activeBank && (
                                     <div className="ml-11 mt-4 p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 space-y-4">
                                         <p className="font-medium text-sm text-zinc-600 dark:text-zinc-300">
-                                            Please transfer exactly <strong className="text-zinc-900 dark:text-zinc-100">ETB {selectedCategory ? parseFloat(selectedCategory.price).toFixed(2) : '0.00'}</strong> to the following account:
+                                            Please transfer exactly <strong className="text-zinc-900 dark:text-zinc-100">{formattedFinalPrice}</strong> to the following account:
                                         </p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
@@ -196,7 +217,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                                             </div>
                                             <div>
                                                 <p className="text-xs text-zinc-500 uppercase font-bold tracking-widest mb-1 shadow-sm">Account Number</p>
-                                                <p className="font-black font-mono text-sm bg-zinc-200 dark:bg-zinc-900 px-3 py-2 rounded-lg text-[#AC1212]">{activeBank.accountNumber}</p>
+                                                <p className="font-black font-mono text-sm bg-zinc-200 dark:bg-zinc-900 px-3 py-2 rounded-lg text-crimson">{activeBank.accountNumber}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -206,7 +227,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                             {/* Step 3: Transaction Details */}
                             <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-8 h-8 rounded-full bg-[#AC1212] text-white flex items-center justify-center font-bold text-sm">3</div>
+                                    <div className="w-8 h-8 rounded-full bg-crimson text-white flex items-center justify-center font-bold text-sm">3</div>
                                     <h3 className="font-bold text-lg">Verify Payment</h3>
                                 </div>
                                 <div className="pl-11 space-y-4">
@@ -216,7 +237,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
                                             placeholder="e.g. FT231... or TXN123..."
                                             value={transactionRef}
                                             onChange={(e) => setTransactionRef(e.target.value)}
-                                            className="h-14 rounded-xl px-4 font-mono font-medium text-lg border-2 border-zinc-200 dark:border-zinc-700 focus-visible:ring-0 focus-visible:border-[#AC1212]"
+                                            className="h-14 rounded-xl px-4 font-mono font-medium text-lg border-2 border-zinc-200 dark:border-zinc-700 focus-visible:ring-0 focus-visible:border-crimson"
                                         />
                                         <p className="text-xs text-zinc-500 font-medium">Find this on your bank transfer receipt or SMS confirmation.</p>
                                     </div>
@@ -226,7 +247,7 @@ export default function CheckoutModal({ isOpen, onClose, event, categories, onSu
 
                         <DialogFooter className="px-8 pb-8 pt-4 sm:flex-col gap-3 sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800">
                             <Button
-                                className="w-full h-14 text-sm font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 dark:bg-[#AC1212] dark:hover:bg-[#8a0f0f] text-white rounded-2xl shadow-xl hover:shadow-none"
+                                className="w-full h-14 text-sm font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 dark:bg-crimson dark:hover:bg-crimson-dark text-white rounded-2xl shadow-xl hover:shadow-none"
                                 onClick={handlePurchase}
                                 disabled={loading || !selectedCategoryId || !transactionRef.trim()}
                             >

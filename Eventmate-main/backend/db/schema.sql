@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS ticket_categories (
     price DECIMAL(10, 2) DEFAULT 0.00,
     capacity INTEGER DEFAULT 0,
     quantity_sold INTEGER DEFAULT 0,
+    discount_type VARCHAR(20) DEFAULT 'none' CHECK (discount_type IN ('none', 'percentage', 'fixed')),
+    discount_value DECIMAL(10, 2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

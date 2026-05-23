@@ -128,7 +128,7 @@ export default function AdminNotificationsPage() {
                                         if (open && availableUsers.length === 0) searchUsers('');
                                     }}>
                                         <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm" className="h-8 gap-2 bg-[#AC1212]/5 hover:bg-[#AC1212]/10 border-[#AC1212]/20 text-[#AC1212]">
+                                            <Button variant="outline" size="sm" className="h-8 gap-2 bg-crimson/5 hover:bg-crimson/10 border-crimson/20 text-crimson">
                                                 <Search className="h-3.5 w-3.5" />
                                                 Select Users
                                             </Button>
@@ -157,7 +157,7 @@ export default function AdminNotificationsPage() {
                                                 <ScrollArea className="h-[300px] pr-4">
                                                     {loadingUsers ? (
                                                         <div className="flex items-center justify-center h-full">
-                                                            <Loader2 className="h-6 w-6 animate-spin text-[#AC1212]" />
+                                                            <Loader2 className="h-6 w-6 animate-spin text-crimson" />
                                                         </div>
                                                     ) : availableUsers.length === 0 ? (
                                                         <div className="text-center py-10 text-muted-foreground">
@@ -169,14 +169,14 @@ export default function AdminNotificationsPage() {
                                                                 <div
                                                                     key={user.id}
                                                                     className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${selectedUsers.some(u => u.id === user.id)
-                                                                        ? "bg-[#AC1212]/5 border-[#AC1212]/30"
+                                                                        ? "bg-crimson/5 border-crimson/30"
                                                                         : theme === "dark" ? "bg-slate-800/50 border-slate-700 hover:bg-slate-800" : "hover:bg-slate-50 border-slate-100"
                                                                         }`}
                                                                     onClick={() => toggleUserSelection(user)}
                                                                 >
                                                                     <Checkbox
                                                                         checked={selectedUsers.some(u => u.id === user.id)}
-                                                                        className={selectedUsers.some(u => u.id === user.id) ? "border-[#AC1212] bg-[#AC1212]" : ""}
+                                                                        className={selectedUsers.some(u => u.id === user.id) ? "border-crimson bg-crimson" : ""}
                                                                     />
                                                                     <div className="flex-1 min-w-0">
                                                                         <p className={`text-sm font-semibold truncate ${theme === "dark" ? "text-slate-100" : ""}`}>{user.name}</p>
@@ -198,7 +198,7 @@ export default function AdminNotificationsPage() {
                                                     <span className="text-sm font-medium">
                                                         {selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected
                                                     </span>
-                                                    <Button size="sm" className="bg-[#AC1212] hover:bg-[#8a0f0f]" onClick={() => setDialogOpen(false)}>
+                                                    <Button size="sm" className="bg-crimson hover:bg-crimson-dark" onClick={() => setDialogOpen(false)}>
                                                         Done
                                                     </Button>
                                                 </div>
@@ -229,7 +229,7 @@ export default function AdminNotificationsPage() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="text-[10px] h-7 px-2 text-[#AC1212] font-bold hover:bg-[#AC1212]/10"
+                                            className="text-[10px] h-7 px-2 text-crimson font-bold hover:bg-crimson/10"
                                             onClick={() => setSelectedUsers([])}
                                         >
                                             Clear All
@@ -247,7 +247,7 @@ export default function AdminNotificationsPage() {
                                 <Textarea
                                     id="message"
                                     placeholder="Type your announcement here..."
-                                    className={`min-h-[150px] resize-none ${theme === "dark" ? "bg-slate-800 border-slate-700 text-slate-100 focus:ring-red-600" : "focus:ring-[#AC1212]"}`}
+                                    className={`min-h-[150px] resize-none ${theme === "dark" ? "bg-slate-800 border-slate-700 text-slate-100 focus:ring-red-600" : "focus:ring-crimson"}`}
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                 />
@@ -257,7 +257,7 @@ export default function AdminNotificationsPage() {
                                 <Button
                                     onClick={handleSendBulk}
                                     disabled={sending || (!userIds.trim() && selectedUsers.length === 0) || !message.trim()}
-                                    className="bg-[#AC1212] hover:bg-[#8a0f0f] text-white min-w-[140px] shadow-lg shadow-red-900/20 transition-all font-semibold"
+                                    className="bg-crimson hover:bg-crimson-dark text-white min-w-[140px] shadow-lg shadow-red-900/20 transition-all font-semibold"
                                 >
                                     {sending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
                                     {sending ? "Sending..." : "Send Notification"}
@@ -278,34 +278,34 @@ export default function AdminNotificationsPage() {
                         <CardContent className="text-sm space-y-4">
                             <ul className={`space-y-3 ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>
                                 <li className="flex gap-2">
-                                    <span className="text-[#AC1212] font-bold">•</span>
+                                    <span className="text-crimson font-bold">•</span>
                                     <span>Notifications are sent immediately upon pressing send.</span>
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="text-[#AC1212] font-bold">•</span>
+                                    <span className="text-crimson font-bold">•</span>
                                     <span>Verify user IDs before broadcasting sensitive information.</span>
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="text-[#AC1212] font-bold">•</span>
+                                    <span className="text-crimson font-bold">•</span>
                                     <span>A high frequency of notifications may be considered intrusive by users.</span>
                                 </li>
                                 <li className="flex gap-2">
-                                    <span className="text-[#AC1212] font-bold">•</span>
+                                    <span className="text-crimson font-bold">•</span>
                                     <span>Messages are stored in the database for user history.</span>
                                 </li>
                             </ul>
                         </CardContent>
                     </Card>
 
-                    <Card className={theme === "dark" ? "bg-[#AC1212]/5 border-slate-800" : "bg-red-50/50 border-red-100"}>
+                    <Card className={theme === "dark" ? "bg-crimson/5 border-slate-800" : "bg-red-50/50 border-red-100"}>
                         <CardHeader className="pb-2">
-                            <div className="w-10 h-10 rounded-full bg-[#AC1212]/10 flex items-center justify-center mb-2">
-                                <Users className="h-5 w-5 text-[#AC1212]" />
+                            <div className="w-10 h-10 rounded-full bg-crimson/10 flex items-center justify-center mb-2">
+                                <Users className="h-5 w-5 text-crimson" />
                             </div>
-                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-[#AC1212]">Quick Actions</CardTitle>
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-crimson">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Button variant="ghost" className="w-full justify-start text-xs font-semibold hover:bg-[#AC1212]/10 h-8" onClick={() => setUserIds('all')}>
+                            <Button variant="ghost" className="w-full justify-start text-xs font-semibold hover:bg-crimson/10 h-8" onClick={() => setUserIds('all')}>
                                 Target All (Custom Logic)
                             </Button>
                             <Button variant="ghost" className="w-full justify-start text-xs font-semibold hover:bg-slate-200/10 h-8" onClick={() => setMessage('System maintenance scheduled for tonight.')}>

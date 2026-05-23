@@ -55,9 +55,11 @@ import {
     Edit,
     Trash2
 } from "lucide-react"
+import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
 
 export default function OrganiserTicketsPage() {
+    const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
     const router = useRouter()
     const [tickets, setTickets] = useState<any[]>([])
@@ -243,8 +245,11 @@ export default function OrganiserTicketsPage() {
     }
 
     useEffect(() => {
+        if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+            return
+        }
         fetchTickets()
-    }, [])
+    }, [user, authLoading])
 
     const filteredTickets = tickets.filter(ticket => {
         const matchesSearch = ticket.id?.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -273,6 +278,18 @@ export default function OrganiserTicketsPage() {
     const activeTickets = tickets.filter(t => t.status === 'active').length
     const totalSold = tickets.reduce((sum, t) => sum + parseInt(t.sold || 0), 0)
     const totalRevenue = tickets.reduce((sum, t) => sum + parseFloat(t.revenue || 0), 0)
+
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-crimson" />
+            </div>
+        )
+    }
+
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+        return null
+    }
 
     return (
         <div className="space-y-6">

@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { Calendar, MapPin, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { eventsApi, API_BASE_URL, type Event } from '@/lib/api';
+import PriceDisplay from '@/components/PriceDisplay';
 
 const FeaturedEvents = () => {
   const router = useRouter();
@@ -39,7 +40,7 @@ const FeaturedEvents = () => {
 
   if (loading) {
     return (
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 habesha-surface">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold font-display mb-4">Featured <span className="text-crimson">Showcases</span></h2>
@@ -57,7 +58,7 @@ const FeaturedEvents = () => {
 
   if (events.length === 0) {
     return (
-      <section className="py-24 bg-slate-50">
+      <section className="py-24 habesha-surface">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold font-display mb-4">Featured <span className="text-crimson">Showcases</span></h2>
@@ -74,7 +75,7 @@ const FeaturedEvents = () => {
   }
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-24 habesha-surface">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-extrabold font-display mb-4">Featured <span className="text-crimson">Showcases</span></h2>
@@ -129,9 +130,12 @@ const FeaturedEvents = () => {
                 </div>
                 
                 <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    {event.is_paid ? 'Paid Event' : 'Free Event'}
-                  </span>
+                  <PriceDisplay
+                    price={event.min_price}
+                    discountType={event.discount_type}
+                    discountValue={event.discount_value}
+                    size="sm"
+                  />
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, MapPin, Users, ArrowLeft, Loader2, Info, Ticket, CheckCircle2 } from 'lucide-react';
 import { eventsApi, registrationsApi, Event, API_BASE_URL } from '@/lib/api';
+import PriceDisplay from '@/components/PriceDisplay';
 import { useAuth } from '@/components/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -100,7 +101,7 @@ export default function EventDetailsPage() {
             <div className="flex min-h-screen flex-col">
                 <AuthNavbar />
                 <main className="flex-1 flex items-center justify-center mt-16">
-                    <Loader2 className="h-10 w-10 animate-spin text-[#AC1212]" />
+                    <Loader2 className="h-10 w-10 animate-spin text-crimson" />
                 </main>
                 <Footer />
             </div>
@@ -121,7 +122,7 @@ export default function EventDetailsPage() {
     }
 
     return (
-        <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
+        <div className="flex min-h-screen flex-col habesha-surface">
             <AuthNavbar />
             <main className="flex-1 pb-20 mt-16">
                 {/* Hero Section */}
@@ -147,7 +148,7 @@ export default function EventDetailsPage() {
                             <ArrowLeft className="mr-2 h-4 w-4" /> Back
                         </Button>
                         <div className="flex flex-wrap gap-2 mb-4">
-                            <span className="bg-[#AC1212] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
+                            <span className="bg-crimson text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">
                                 {event.category}
                             </span>
                             {event.is_paid ? (
@@ -172,7 +173,7 @@ export default function EventDetailsPage() {
                         <div className="lg:col-span-2 space-y-10">
                             <section>
                                 <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                                    <Info className="h-6 w-6 text-[#AC1212]" /> About the Event
+                                    <Info className="h-6 w-6 text-crimson" /> About the Event
                                 </h2>
                                 <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-lg whitespace-pre-wrap">
                                     {event.description}
@@ -183,7 +184,7 @@ export default function EventDetailsPage() {
                                 <Card className="border-none bg-white dark:bg-zinc-900/50 shadow-sm rounded-2xl p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
-                                            <Calendar className="h-6 w-6 text-[#AC1212]" />
+                                            <Calendar className="h-6 w-6 text-crimson" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-zinc-900 dark:text-white">Date & Time</h3>
@@ -202,7 +203,7 @@ export default function EventDetailsPage() {
                                 <Card className="border-none bg-white dark:bg-zinc-900/50 shadow-sm rounded-2xl p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
-                                            <MapPin className="h-6 w-6 text-[#AC1212]" />
+                                            <MapPin className="h-6 w-6 text-crimson" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-zinc-900 dark:text-white">Location</h3>
@@ -223,7 +224,7 @@ export default function EventDetailsPage() {
                             {event.location_latitude && event.location_longitude && (
                                 <section>
                                     <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                                        <MapPin className="h-6 w-6 text-[#AC1212]" /> Event Location
+                                        <MapPin className="h-6 w-6 text-crimson" /> Event Location
                                     </h2>
                                     <div className="w-full" style={{ height: '400px' }}>
                                         <LocationMap
@@ -253,7 +254,7 @@ export default function EventDetailsPage() {
                         {/* Sidebar / RSVP Widget */}
                         <div className="lg:col-span-1">
                             <Card className="sticky top-24 border-none shadow-2xl rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
-                                <div className="bg-[#AC1212] p-6 text-white text-center">
+                                <div className="bg-crimson p-6 text-white text-center">
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-2">Registration</p>
                                     <h3 className="text-2xl font-black">
                                         {event.is_paid ? 'Get Tickets' : 'RSVP Now'}
@@ -282,7 +283,12 @@ export default function EventDetailsPage() {
                                                                 {cat.capacity > 0 ? `${cat.capacity - cat.quantity_sold} remaining` : 'Available'}
                                                             </p>
                                                         </div>
-                                                        <span className="font-black text-[#AC1212]">ETB {parseFloat(cat.price).toFixed(2)}</span>
+                                                        <PriceDisplay
+                                                            price={cat.price}
+                                                            discountType={cat.discount_type}
+                                                            discountValue={cat.discount_value}
+                                                            size="sm"
+                                                        />
                                                     </div>
                                                 ))}
                                             </div>
@@ -290,7 +296,7 @@ export default function EventDetailsPage() {
                                     )}
 
                                     <Button
-                                        className="w-full h-14 text-base font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 dark:bg-[#AC1212] dark:hover:bg-[#8a0f0f] text-white rounded-2xl transition-all shadow-xl hover:shadow-none"
+                                        className="w-full h-14 text-base font-black uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800 dark:bg-crimson dark:hover:bg-crimson-dark text-white rounded-2xl transition-all shadow-xl hover:shadow-none"
                                         onClick={handleRegister}
                                         disabled={registering}
                                     >

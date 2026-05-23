@@ -254,7 +254,7 @@ export default function VerifyPage() {
     return (
         <div className="flex min-h-screen flex-col">
             <Navbar />
-            <main className="flex-1 flex items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
+            <main className="flex-1 flex items-center justify-center habesha-surface px-4 py-12">
                 <Suspense fallback={<div>Loading...</div>}>
                     <VerifyContent />
                 </Suspense>

@@ -13,7 +13,7 @@ export default function App() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen selection:bg-crimson selection:text-white scroll-smooth">
+    <div className="page-shell min-h-screen selection:bg-habesha-green selection:text-white scroll-smooth">
       <Navbar />
 
       <main>
@@ -22,11 +22,9 @@ export default function App() {
         </section>
 
         {/* Artistic Divider */}
-        <div className="relative h-24 bg-white overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center opacity-5">
-            <span className="text-9xl font-black font-display whitespace-nowrap">
-              CELEBRATION • VISION • ARTISTRY • EDUCATION • MUSIC • CELEBRATION
-            </span>
+        <div className="relative h-20 overflow-hidden habesha-surface">
+          <div className="habesha-divider max-w-4xl mx-auto px-6" aria-hidden>
+            <span className="habesha-divider-icon" />
           </div>
         </div>
 
@@ -37,14 +35,14 @@ export default function App() {
         {/* Call to Action Section */}
         <section
           id="contact"
-          className="py-20 bg-white overflow-hidden relative"
+          className="py-20 habesha-surface overflow-hidden relative"
         >
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="crimson-gradient rounded-none p-12 md:p-20 text-center text-white relative overflow-hidden"
+              className="habesha-gradient rounded-lg p-12 md:p-20 text-center text-white relative overflow-hidden ring-1 ring-habesha-gold/30"
             >
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
@@ -86,7 +84,7 @@ export default function App() {
         </section>
 
         {/* Gallery Preview / Artistic Section */}
-        <section id="gallery" className="py-24 bg-white overflow-hidden">
+        <section id="gallery" className="py-24 overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-150">
               <div className="col-span-2 row-span-2 rounded-none overflow-hidden group relative">

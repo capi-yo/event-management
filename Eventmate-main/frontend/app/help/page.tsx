@@ -42,7 +42,7 @@ export default function HelpPage() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <Headphones className="h-5 w-5 text-[#AC1212]" />
+                                            <Headphones className="h-5 w-5 text-crimson" />
                                             Contact Options
                                         </CardTitle>
                                         <CardDescription>Choose how you want to reach us</CardDescription>
@@ -165,7 +165,7 @@ export default function HelpPage() {
                                                     required
                                                 />
                                             </div>
-                                            <Button type="submit" className="w-full bg-[#AC1212] hover:bg-[#8a0f0f]">
+                                            <Button type="submit" className="w-full bg-crimson hover:bg-crimson-dark">
                                                 <Send className="mr-2 h-4 w-4" />
                                                 Send Message
                                             </Button>

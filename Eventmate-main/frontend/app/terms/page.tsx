@@ -19,7 +19,7 @@ export default function TermsOfService() {
         </section>
 
         {/* Content Section */}
-        <div className="container mx-auto px-4 max-w-4xl py-16 bg-white">
+        <div className="container mx-auto px-4 max-w-4xl py-16">
 
           <div className="space-y-8 text-gray-700">
             <section>

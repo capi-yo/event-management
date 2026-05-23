@@ -212,7 +212,7 @@ export default function AdminDashboard() {
     if (loading) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#AC1212]" />
+                <Loader2 className="h-8 w-8 animate-spin text-crimson" />
             </div>
         );
     }

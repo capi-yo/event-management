@@ -6,6 +6,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-crimson: var(--crimson);
+  --color-habesha-gold: var(--habesha-gold);
+  --color-habesha-green: var(--habesha-green);
+  --color-habesha-red: var(--habesha-red-bright);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -49,82 +53,132 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #DC143C;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  
-  /* Crimson Red Theme Colors */
-  --crimson: #DC143C;
-  --crimson-dark: #B01030;
-  --crimson-light: #FF1744;
+  --radius: 0.5rem;
+
+  /* Habesha palette — light mode */
+  --habesha-cream: #F8F4EC;
+  --habesha-cream-deep: #EDE6D6;
+  --habesha-gold: #C9A227;
+  --habesha-gold-light: #E4C76B;
+  --habesha-green: #0D4A2C;
+  --habesha-green-mid: #1B6B42;
+  --habesha-red: #9B1B1B;
+  --habesha-red-bright: #B91C1C;
+  --habesha-black: #1A1A1A;
+  --habesha-white: #FFFFFF;
+
+  --background: var(--habesha-cream);
+  --foreground: var(--habesha-black);
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: var(--habesha-black);
+  --popover: var(--habesha-white);
+  --popover-foreground: var(--habesha-black);
+  --primary: var(--habesha-green);
+  --primary-foreground: var(--habesha-white);
+  --secondary: var(--habesha-cream-deep);
+  --secondary-foreground: var(--habesha-black);
+  --muted: #F0EBE0;
+  --muted-foreground: #5C5348;
+  --accent: color-mix(in srgb, var(--habesha-gold) 18%, var(--habesha-cream));
+  --accent-foreground: var(--habesha-green);
+  --destructive: var(--habesha-red-bright);
+  --border: color-mix(in srgb, var(--habesha-gold) 22%, #D4C9B8);
+  --input: color-mix(in srgb, var(--habesha-gold) 15%, #E8E0D4);
+  --ring: var(--habesha-green-mid);
+  --chart-1: var(--habesha-green);
+  --chart-2: var(--habesha-gold);
+  --chart-3: var(--habesha-red);
+  --chart-4: var(--habesha-green-mid);
+  --chart-5: #6B8F71;
+  --sidebar: rgba(255, 255, 255, 0.95);
+  --sidebar-foreground: var(--habesha-black);
+  --sidebar-primary: var(--habesha-green);
+  --sidebar-primary-foreground: var(--habesha-white);
+  --sidebar-accent: var(--habesha-cream-deep);
+  --sidebar-accent-foreground: var(--habesha-black);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--habesha-gold);
+
+  /* Accent red — CTAs, highlights (backward-compat aliases) */
+  --crimson: var(--habesha-red-bright);
+  --crimson-dark: var(--habesha-red);
+  --crimson-light: #D32F2F;
+
+  /* Tilet pattern — visible but readable */
+  --tilet-opacity: 0.11;
+  --tilet-opacity-secondary: 0.045;
+  --tilet-color: var(--habesha-green);
+  --tilet-color-secondary: var(--habesha-gold);
+  --tilet-size: 72px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --tilet-size: 56px;
+    --tilet-opacity: 0.09;
+    --tilet-opacity-secondary: 0.038;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --tilet-size: 80px;
+    --tilet-opacity: 0.12;
+  }
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #DC143C;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  
-  /* Crimson Red Theme Colors */
-  --crimson: #DC143C;
-  --crimson-dark: #B01030;
-  --crimson-light: #FF1744;
+  --habesha-cream: #141210;
+  --habesha-cream-deep: #1E1B17;
+  --habesha-gold: #D4AF37;
+  --habesha-gold-light: #E8C96A;
+  --habesha-green: #2E8B57;
+  --habesha-green-mid: #3DA870;
+  --habesha-red: #C62828;
+  --habesha-red-bright: #E53935;
+  --habesha-black: #F5F0E8;
+  --habesha-white: #0F0E0C;
+
+  --background: #12100E;
+  --foreground: #F5F0E8;
+  --card: rgba(30, 27, 23, 0.94);
+  --card-foreground: #F5F0E8;
+  --popover: #1E1B17;
+  --popover-foreground: #F5F0E8;
+  --primary: var(--habesha-green-mid);
+  --primary-foreground: #FFFFFF;
+  --secondary: #252219;
+  --secondary-foreground: #F5F0E8;
+  --muted: #252219;
+  --muted-foreground: #A89F92;
+  --accent: color-mix(in srgb, var(--habesha-gold) 12%, #1E1B17);
+  --accent-foreground: var(--habesha-gold-light);
+  --destructive: var(--habesha-red-bright);
+  --border: color-mix(in srgb, var(--habesha-gold) 18%, #3A3530);
+  --input: color-mix(in srgb, var(--habesha-gold) 10%, #2A2622);
+  --ring: var(--habesha-gold);
+  --chart-1: var(--habesha-green-mid);
+  --chart-2: var(--habesha-gold);
+  --chart-3: var(--habesha-red-bright);
+  --chart-4: #4A7C59;
+  --chart-5: #8B7355;
+  --sidebar: rgba(30, 27, 23, 0.98);
+  --sidebar-foreground: #F5F0E8;
+  --sidebar-primary: var(--habesha-green-mid);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #252219;
+  --sidebar-accent-foreground: #F5F0E8;
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--habesha-gold);
+
+  --crimson: var(--habesha-red-bright);
+  --crimson-dark: var(--habesha-red);
+  --crimson-light: #EF5350;
+
+  --tilet-opacity: 0.13;
+  --tilet-opacity-secondary: 0.05;
+  --tilet-color: var(--habesha-gold);
+  --tilet-color-secondary: var(--habesha-green-mid);
 }
 
 @layer base {
@@ -139,30 +193,180 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Premium cards with subtle gold accent */
+  .habesha-card,
+  [data-slot="card"] {
+    border-color: color-mix(in srgb, var(--habesha-gold) 28%, var(--border));
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--habesha-green) 6%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--habesha-gold) 8%, transparent);
+  }
 }
 
-/* Custom Utility Classes */
-.crimson-gradient {
-  background: linear-gradient(135deg, var(--crimson) 0%, var(--crimson-dark) 100%);
+/* ─── Tilet (ጥለት) background pattern ─────────────────────────────────────
+ * Applied on body.habesha-app via a fixed pseudo-element.
+ * Uses /habesha-tilet.svg (72×72) with currentColor strokes; tint via mask.
+ * Low opacity keeps text readable on cream/dark surfaces.
+ */
+.habesha-app {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Primary tilet layer (green / gold by theme) */
+.habesha-app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--tilet-color);
+  opacity: var(--tilet-opacity);
+  -webkit-mask-image: url("/habesha-tilet.svg");
+  mask-image: url("/habesha-tilet.svg");
+  -webkit-mask-size: var(--tilet-size) var(--tilet-size);
+  mask-size: var(--tilet-size) var(--tilet-size);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+/* Secondary offset layer for depth (gold / green accent) */
+.habesha-app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--tilet-color-secondary);
+  opacity: var(--tilet-opacity-secondary);
+  -webkit-mask-image: url("/habesha-tilet.svg");
+  mask-image: url("/habesha-tilet.svg");
+  -webkit-mask-size: var(--tilet-size) var(--tilet-size);
+  mask-size: var(--tilet-size) var(--tilet-size);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  transform: translate(
+    calc(var(--tilet-size) / 4),
+    calc(var(--tilet-size) / 4)
+  );
+}
+
+.habesha-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* Page sections — pattern shows through; no opaque wash */
+.habesha-surface {
+  background: transparent;
+}
+
+/* Full-page shells (auth, listings, legal) */
+.page-shell {
+  min-height: 100vh;
+  background: transparent;
+}
+
+.habesha-footer {
+  background: #0d4a2c;
+  border-top: 2px solid color-mix(in srgb, var(--habesha-gold) 35%, transparent);
+}
+
+.dark .habesha-footer {
+  background: #0a2818;
+}
+
+/* Gradients & navigation */
+.crimson-gradient,
+.habesha-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--habesha-green) 0%,
+    color-mix(in srgb, var(--habesha-green) 75%, var(--habesha-black)) 50%,
+    var(--habesha-red) 100%
+  );
+}
+
+.habesha-gradient-gold {
+  background: linear-gradient(
+    135deg,
+    var(--habesha-gold) 0%,
+    var(--habesha-green) 100%
+  );
 }
 
 .glass-nav {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--habesha-gold) 25%, var(--border));
+  border-bottom: 1px solid color-mix(in srgb, var(--habesha-gold) 20%, var(--border));
 }
 
-/* Crimson Color Utilities */
-.text-crimson {
+.dark .glass-nav {
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--habesha-gold) 15%, var(--border));
+}
+
+/* Habesha decorative separator */
+.habesha-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  color: var(--habesha-gold);
+  opacity: 0.85;
+}
+
+.habesha-divider::before,
+.habesha-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--habesha-gold) 60%, var(--border)),
+    transparent
+  );
+}
+
+.habesha-divider-icon {
+  width: 0.5rem;
+  height: 0.5rem;
+  rotate: 45deg;
+  border: 1px solid var(--habesha-gold);
+  background: color-mix(in srgb, var(--habesha-gold) 30%, transparent);
+}
+
+/* Accent utilities (crimson aliases → Habesha red) */
+.text-crimson,
+.text-habesha-accent {
   color: var(--crimson);
 }
 
-.bg-crimson {
+.bg-crimson,
+.bg-habesha-accent {
   background-color: var(--crimson);
 }
 
-.border-crimson {
+.border-crimson,
+.border-habesha-accent {
   border-color: var(--crimson);
+}
+
+.text-habesha-gold {
+  color: var(--habesha-gold);
+}
+
+.text-habesha-green {
+  color: var(--habesha-green);
+}
+
+.bg-habesha-green {
+  background-color: var(--habesha-green);
 }
 
 .hover\:bg-crimson-dark:hover {
@@ -178,15 +382,21 @@
 }
 
 .shadow-crimson\/20 {
-  box-shadow: 0 10px 15px -3px rgba(220, 20, 60, 0.2);
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--crimson) 20%, transparent);
 }
 
 .shadow-crimson\/30 {
-  box-shadow: 0 20px 25px -5px rgba(220, 20, 60, 0.3);
+  box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--crimson) 30%, transparent);
 }
 
 .shadow-crimson\/5 {
-  box-shadow: 0 10px 15px -3px rgba(220, 20, 60, 0.05);
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--crimson) 5%, transparent);
+}
+
+.selection\:bg-crimson::selection,
+.selection\:bg-habesha-accent::selection {
+  background-color: var(--habesha-green);
+  color: var(--habesha-white);
 }
 
 /* Leaflet Map Fixes */
@@ -214,4 +424,17 @@
 
 .leaflet-control {
   z-index: 5;
+}
+
+/* Hide native browser password reveal eye icons to prevent overlap with custom UI toggle buttons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

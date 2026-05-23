@@ -64,7 +64,7 @@ export default function LocationAutocomplete({
   }, [query]);
 
   return (
-    <div className="relative">
+    <div className="relative z-[10004]">
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -72,30 +72,41 @@ export default function LocationAutocomplete({
         className={className}
       />
       {query.length >= 3 && (loading || suggestions.length > 0) && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover shadow-md">
+        <div className="absolute z-[10005] mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
           {loading && (
-            <div className="px-3 py-2 text-sm text-muted-foreground">Searching locations...</div>
+            <div className="px-4 py-3 text-sm text-slate-500">Searching locations...</div>
           )}
           {!loading &&
-            suggestions.map((suggestion) => (
-              <button
-                key={`${suggestion.lat}-${suggestion.lng}-${suggestion.display_name}`}
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                onClick={() => {
-                  onSelect({
-                    name: suggestion.display_name,
-                    lat: suggestion.lat,
-                    lng: suggestion.lng,
-                    city: suggestion.city,
-                    country: suggestion.country,
-                  });
-                  setSuggestions([]);
-                }}
-              >
-                {suggestion.display_name}
-              </button>
-            ))}
+            suggestions.map((suggestion) => {
+              // Strip the venue name from the start of display_name to show a clean sub-address
+              let subAddress = suggestion.display_name;
+              if (subAddress.startsWith(suggestion.venue)) {
+                subAddress = subAddress.substring(suggestion.venue.length).replace(/^[,\s]+/, "");
+              }
+              
+              return (
+                <button
+                  key={`${suggestion.lat}-${suggestion.lng}-${suggestion.display_name}`}
+                  type="button"
+                  className="w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition flex flex-col gap-0.5"
+                  onClick={() => {
+                    onSelect({
+                      name: suggestion.venue,
+                      lat: suggestion.lat,
+                      lng: suggestion.lng,
+                      city: suggestion.city,
+                      country: suggestion.country,
+                    });
+                    setSuggestions([]);
+                  }}
+                >
+                  <span className="font-semibold text-slate-800">{suggestion.venue}</span>
+                  {subAddress && (
+                    <span className="text-xs text-slate-400 truncate max-w-full">{subAddress}</span>
+                  )}
+                </button>
+              );
+            })}
         </div>
       )}
     </div>

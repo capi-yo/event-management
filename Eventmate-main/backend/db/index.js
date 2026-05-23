@@ -121,8 +121,8 @@ module.exports = {
                 const adminPassword = await bcrypt.hash('admin123', 10);
 
                 await pool.query(
-                    `INSERT INTO users (name, email, password_hash, role) 
-                     VALUES ($1, $2, $3, $4)
+                    `INSERT INTO users (name, email, password_hash, role, is_verified) 
+                     VALUES ($1, $2, $3, $4, TRUE)
                      ON CONFLICT (email) DO NOTHING`,
                     ['Administrator', 'admin@eventmate.com', adminPassword, 'Administrator']
                 );

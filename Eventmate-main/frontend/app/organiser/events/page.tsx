@@ -60,7 +60,7 @@ import LocationAutocomplete from '@/components/LocationAutocomplete'
 
 export default function OrganiserEventsPage() {
     const { theme } = useTheme()
-    const { user, userData } = useAuth()
+    const { user, userData, loading: authLoading } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -89,17 +89,17 @@ export default function OrganiserEventsPage() {
 
     // Redirect if not organizer or admin
     useEffect(() => {
-        if (!loading && !user) {
+        if (authLoading) return
+        if (!user) {
             router.push('/login')
-        } else if (!loading && user && userData?.role !== 'Organizer' && userData?.role !== 'Administrator') {
+        } else if (user.role !== 'Organizer' && user.role !== 'Administrator') {
             router.push('/')
         }
-    }, [user, userData, loading, router])
+    }, [user, authLoading, router])
 
     useEffect(() => {
         const fetchOrganizerEvents = async () => {
-            if (!user || (userData?.role !== 'Organizer' && userData?.role !== 'Administrator')) {
-                setLoading(false)
+            if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
                 return
             }
 
@@ -123,7 +123,7 @@ export default function OrganiserEventsPage() {
         }
 
         fetchOrganizerEvents()
-    }, [user, userData, currentPage])
+    }, [user, authLoading, currentPage])
 
     const filteredEvents = events.filter(event => {
         const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -167,15 +167,15 @@ export default function OrganiserEventsPage() {
     }
 
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#AC1212]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson"></div>
             </div>
         )
     }
 
-    if (!user || (userData?.role !== 'Organizer' && userData?.role !== 'Administrator')) {
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
         return null
     }
 
@@ -291,7 +291,7 @@ export default function OrganiserEventsPage() {
                         <h2 className={`text-xl font-semibold mb-2 ${theme === "dark" ? "text-slate-100" : ""}`}>No events yet</h2>
                         <p className={`mb-4 ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Create your first event to get started</p>
                         <Link href="/organiser/create">
-                            <Button className="bg-[#AC1212] hover:bg-[#8a0f0f]">
+                            <Button className="bg-crimson hover:bg-crimson-dark">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Event
                             </Button>
@@ -639,7 +639,7 @@ export default function OrganiserEventsPage() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    className="bg-[#AC1212] hover:bg-[#8a0f0f]"
+                                    className="bg-crimson hover:bg-crimson-dark"
                                     onClick={async () => {
                                         try {
                                             await eventsApi.updateEvent(selectedEvent.id, editFormData)

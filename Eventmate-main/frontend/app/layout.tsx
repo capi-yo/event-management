@@ -31,14 +31,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased habesha-app`}
         suppressHydrationWarning
       >
         <ThemeProvider defaultTheme="light">
           <AuthProvider>
             <NotificationProvider>
               <TooltipProvider>
-                {children}
+                <div className="habesha-content min-h-screen">{children}</div>
                 <Toaster />
               </TooltipProvider>
             </NotificationProvider>

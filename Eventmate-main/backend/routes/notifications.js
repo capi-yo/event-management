@@ -4,6 +4,7 @@ const { authenticate, optionalAuth } = require('../middleware/auth');
 const { isOrganizer, isAdmin } = require('../middleware/rbac');
 const { notificationValidation } = require('../middleware/validation');
 const { logger } = require('../utils/logger');
+const { createNotification } = require('../utils/notify');
 
 const router = express.Router();
 
@@ -68,14 +69,10 @@ router.post('/send', authenticate, isOrganizer, notificationValidation.send, asy
         const notificationIds = [];
 
         for (const recipient of recipients) {
-            const result = await db.query(
-                `INSERT INTO notifications (user_id, message) 
-                 VALUES ($1, $2) 
-                 RETURNING id`,
-                [recipient.id, message]
-            );
-
-            notificationIds.push(result.rows[0].id);
+            const row = await createNotification(recipient.id, message);
+            if (row) {
+                notificationIds.push(row.id);
+            }
         }
 
         // Log notification sending
@@ -145,10 +142,7 @@ router.post('/send-bulk', authenticate, isAdmin, async (req, res) => {
 
         // Insert notifications
         for (const user of usersResult.rows) {
-            await db.query(
-                `INSERT INTO notifications (user_id, message) VALUES ($1, $2)`,
-                [user.id, message]
-            );
+            await createNotification(user.id, message);
         }
 
         // Log bulk notification

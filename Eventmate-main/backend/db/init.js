@@ -133,8 +133,8 @@ const initializeDatabase = async () => {
         const adminPassword = await bcrypt.hash('admin123', 10);
 
         await pool.query(
-            `INSERT INTO users (name, email, password_hash, role) 
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO users (name, email, password_hash, role, is_verified) 
+             VALUES ($1, $2, $3, $4, TRUE)
              ON CONFLICT (email) DO NOTHING`,
             ['Administrator', 'admin@eventmate.com', adminPassword, 'Administrator']
         );
@@ -198,6 +198,25 @@ const initializeDatabase = async () => {
             console.log('  ✓ Updated registrations_status_check constraint');
         } catch (err) {
             console.log('  ✗ registrations_status_check migration: ' + err.message.substring(0, 50));
+        }
+
+        // Migration: Add discount columns to ticket_categories table
+        console.log('Running migrations for ticket_categories table...');
+        try {
+            await pool.query(
+                `ALTER TABLE ticket_categories ADD COLUMN IF NOT EXISTS discount_type VARCHAR(20) DEFAULT 'none' CHECK (discount_type IN ('none', 'percentage', 'fixed'))`
+            );
+            console.log('  ✓ Added discount_type column to ticket_categories');
+        } catch (err) {
+            console.log('  ✗ discount_type column migration: ' + err.message.substring(0, 50));
+        }
+        try {
+            await pool.query(
+                `ALTER TABLE ticket_categories ADD COLUMN IF NOT EXISTS discount_value DECIMAL(10, 2) DEFAULT 0.00`
+            );
+            console.log('  ✓ Added discount_value column to ticket_categories');
+        } catch (err) {
+            console.log('  ✗ discount_value column migration: ' + err.message.substring(0, 50));
         }
 
         console.log('\nDatabase initialization complete!');

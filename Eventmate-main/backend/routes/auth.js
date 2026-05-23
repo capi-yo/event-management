@@ -5,17 +5,8 @@ const db = require('../db');
 const { userValidation } = require('../middleware/validation');
 const { authenticate } = require('../middleware/auth');
 const { logger } = require('../utils/logger');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-    port: process.env.SMTP_PORT || 587,
-    auth: {
-        user: process.env.SMTP_USER || 'ethereal.user@ethereal.email',
-        pass: process.env.SMTP_PASS || 'ethereal.pass'
-    }
-});
+const transporter = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -78,19 +69,20 @@ router.post('/register', userValidation.register, async (req, res) => {
         // Send email
         const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify?email=${encodeURIComponent(email)}&code=${verificationCode}`;
         
-        try {
-            await transporter.sendMail({
-                from: '"EventMate" <noreply@eventmate.com>',
-                to: email,
-                subject: 'Verify your EventMate account',
-                text: `Your verification OTP is: ${verificationCode}. Please enter this code on the verification page.`,
-                html: `<h3>Welcome to EventMate!</h3><p>Your verification OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${verificationCode}</h1><p>Please enter this code on the verification page to complete your registration.</p>`
-            });
+        transporter.sendMail({
+            from: '"EventMate" <noreply@eventmate.com>',
+            to: email,
+            subject: 'Verify your EventMate account',
+            text: `Your verification OTP is: ${verificationCode}. Please enter this code on the verification page.`,
+            html: `<h3>Welcome to EventMate!</h3><p>Your verification OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${verificationCode}</h1><p>Please enter this code on the verification page to complete your registration.</p>`
+        }).then(() => {
             console.log(`Verification email sent to ${email} with OTP ${verificationCode}`);
-        } catch (emailError) {
+        }).catch((emailError) => {
             console.error('Failed to send verification email:', emailError);
-            // We continue even if email fails, but in production we might handle this differently
-        }
+        });
+        console.log(`\n======================================================`);
+        console.log(`[DEVELOPMENT] VERIFICATION OTP FOR ${email}: ${verificationCode}`);
+        console.log(`======================================================\n`);
 
         res.status(201).json({
             success: true,
@@ -272,14 +264,20 @@ router.post('/resend-otp', async (req, res) => {
                 [otpCode, expires, user.id]
             );
 
-            await transporter.sendMail({
+            transporter.sendMail({
                 from: '"EventMate" <noreply@eventmate.com>',
                 to: email,
                 subject: 'Reset your EventMate password',
                 text: `Your password reset OTP is: ${otpCode}. This OTP will expire in 15 minutes.`,
                 html: `<h3>Password Reset Request</h3><p>You requested a password reset. Your OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${otpCode}</h1><p>Please enter this code on the password reset page. This OTP is valid for 15 minutes.</p>`
+            }).then(() => {
+                console.log(`Resent password reset OTP to ${email}`);
+            }).catch((emailError) => {
+                console.error('Failed to resend password reset email:', emailError);
             });
-            console.log(`Resent password reset OTP to ${email}`);
+            console.log(`\n======================================================`);
+            console.log(`[DEVELOPMENT] RESENT PASSWORD RESET OTP FOR ${email}: ${otpCode}`);
+            console.log(`======================================================\n`);
         } else {
             // Default to verification
             if (user.is_verified) {
@@ -296,14 +294,20 @@ router.post('/resend-otp', async (req, res) => {
                 [otpCode, expires, user.id]
             );
 
-            await transporter.sendMail({
+            transporter.sendMail({
                 from: '"EventMate" <noreply@eventmate.com>',
                 to: email,
                 subject: 'Verify your EventMate account',
                 text: `Your verification OTP is: ${otpCode}. Please enter this code on the verification page.`,
                 html: `<h3>Welcome to EventMate!</h3><p>Your verification OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${otpCode}</h1><p>Please enter this code on the verification page to complete your registration. This OTP is valid for 10 minutes.</p>`
+            }).then(() => {
+                console.log(`Resent verification OTP to ${email}`);
+            }).catch((emailError) => {
+                console.error('Failed to resend verification email:', emailError);
             });
-            console.log(`Resent verification OTP to ${email}`);
+            console.log(`\n======================================================`);
+            console.log(`[DEVELOPMENT] RESENT VERIFICATION OTP FOR ${email}: ${otpCode}`);
+            console.log(`======================================================\n`);
         }
 
         res.json({
@@ -377,22 +381,20 @@ router.post('/forgot-password', async (req, res) => {
             [resetToken, expires, user.id]
         );
 
-        try {
-            await transporter.sendMail({
-                from: '"EventMate" <noreply@eventmate.com>',
-                to: email,
-                subject: 'Reset your EventMate password',
-                text: `Your password reset OTP is: ${resetToken}. This OTP will expire in 15 minutes.`,
-                html: `<h3>Password Reset Request</h3><p>You requested a password reset. Your OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${resetToken}</h1><p>Please enter this code on the password reset page. This OTP is valid for 15 minutes.</p>`
-            });
+        transporter.sendMail({
+            from: '"EventMate" <noreply@eventmate.com>',
+            to: email,
+            subject: 'Reset your EventMate password',
+            text: `Your password reset OTP is: ${resetToken}. This OTP will expire in 15 minutes.`,
+            html: `<h3>Password Reset Request</h3><p>You requested a password reset. Your OTP is:</p><h1 style="font-size: 32px; letter-spacing: 5px; color: #dc143c;">${resetToken}</h1><p>Please enter this code on the password reset page. This OTP is valid for 15 minutes.</p>`
+        }).then(() => {
             console.log(`Password reset email sent to ${email} with OTP ${resetToken}`);
-        } catch (emailError) {
+        }).catch((emailError) => {
             console.error('Failed to send password reset email:', emailError);
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send password reset email.'
-            });
-        }
+        });
+        console.log(`\n======================================================`);
+        console.log(`[DEVELOPMENT] PASSWORD RESET OTP FOR ${email}: ${resetToken}`);
+        console.log(`======================================================\n`);
 
         res.json({
             success: true,

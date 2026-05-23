@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Mail, Save, LogOut } from 'lucide-react';
 import { userApi } from '@/lib/api';
+import { validateName } from '@/lib/validations';
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -65,6 +66,13 @@ export default function ProfilePage() {
         setSaving(true);
         setError('');
         setSuccess(false);
+
+        const nameError = validateName(displayName);
+        if (nameError) {
+            setError(nameError);
+            setSaving(false);
+            return;
+        }
 
         try {
             await userApi.updateProfile(displayName);

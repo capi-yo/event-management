@@ -8,7 +8,7 @@ const services = [
     title: 'Event Registration',
     desc: 'Seamless event discovery and registration system for attendees to find and book their favorite events.',
     icon: Calendar,
-    color: 'bg-red-50',
+    color: 'bg-accent',
     iconColor: 'text-crimson',
   },
   {
@@ -22,7 +22,7 @@ const services = [
     title: 'Event Organization',
     desc: 'Complete event creation and management tools for organizers to plan, publish, and manage their events.',
     icon: Users,
-    color: 'bg-red-50',
+    color: 'bg-accent',
     iconColor: 'text-crimson',
   },
   {
@@ -36,7 +36,7 @@ const services = [
 
 const Services = () => {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 habesha-surface">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">

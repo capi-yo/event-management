@@ -106,9 +106,19 @@ router.get('/', optionalAuth, async (req, res) => {
         const offsetParam = filterValues.length + 2;
 
         const result = await db.query(
-            `SELECT e.*, u.name as organizer_name 
+            `SELECT e.*, u.name as organizer_name,
+                    tc.price as min_price,
+                    tc.discount_type as discount_type,
+                    tc.discount_value as discount_value
              FROM events e
              JOIN users u ON e.organizer_id = u.id
+             LEFT JOIN LATERAL (
+                 SELECT price, discount_type, discount_value
+                 FROM ticket_categories
+                 WHERE event_id = e.id
+                 ORDER BY price ASC
+                 LIMIT 1
+             ) tc ON true
              WHERE ${whereClause}
              ORDER BY e.date ASC, e.time ASC
              LIMIT $${limitParam} OFFSET $${offsetParam}`,
@@ -155,11 +165,21 @@ router.get('/organizer/my-events', authenticate, isOrganizer, async (req, res) =
                 (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.id) as registration_count,
                 (SELECT COUNT(*) FROM tickets t 
                  JOIN registrations r ON t.registration_id = r.id 
-                 WHERE r.event_id = e.id) as ticket_count
-                FROM events e
-                WHERE e.organizer_id = $1 AND e.status = $2
-                ORDER BY e.date DESC, e.time DESC
-                LIMIT $3 OFFSET $4`;
+                 WHERE r.event_id = e.id) as ticket_count,
+                tc.price as min_price,
+                tc.discount_type as discount_type,
+                tc.discount_value as discount_value
+                 FROM events e
+                 LEFT JOIN LATERAL (
+                     SELECT price, discount_type, discount_value
+                     FROM ticket_categories
+                     WHERE event_id = e.id
+                     ORDER BY price ASC
+                     LIMIT 1
+                 ) tc ON true
+                 WHERE e.organizer_id = $1 AND e.status = $2
+                 ORDER BY e.date DESC, e.time DESC
+                 LIMIT $3 OFFSET $4`;
             values = [req.user.id, status, limit, offset];
         } else {
             countQuery = 'SELECT COUNT(*) FROM events e WHERE e.organizer_id = $1';
@@ -167,11 +187,21 @@ router.get('/organizer/my-events', authenticate, isOrganizer, async (req, res) =
                 (SELECT COUNT(*) FROM registrations r WHERE r.event_id = e.id) as registration_count,
                 (SELECT COUNT(*) FROM tickets t 
                  JOIN registrations r ON t.registration_id = r.id 
-                 WHERE r.event_id = e.id) as ticket_count
-                FROM events e
-                WHERE e.organizer_id = $1
-                ORDER BY e.date DESC, e.time DESC
-                LIMIT $2 OFFSET $3`;
+                 WHERE r.event_id = e.id) as ticket_count,
+                tc.price as min_price,
+                tc.discount_type as discount_type,
+                tc.discount_value as discount_value
+                 FROM events e
+                 LEFT JOIN LATERAL (
+                     SELECT price, discount_type, discount_value
+                     FROM ticket_categories
+                     WHERE event_id = e.id
+                     ORDER BY price ASC
+                     LIMIT 1
+                 ) tc ON true
+                 WHERE e.organizer_id = $1
+                 ORDER BY e.date DESC, e.time DESC
+                 LIMIT $2 OFFSET $3`;
             values = [req.user.id, limit, offset];
         }
 
@@ -490,6 +520,8 @@ router.get('/organizer/tickets', authenticate, isOrganizer, async (req, res) => 
                 COALESCE(tc.price, 0.00) as price,
                 COALESCE(tc.capacity, 0) as capacity,
                 COALESCE(tc.quantity_sold, 0) as quantity_sold,
+                tc.discount_type,
+                tc.discount_value,
                 COALESCE(
                     (SELECT COUNT(*) 
                      FROM registrations r 
@@ -498,13 +530,13 @@ router.get('/organizer/tickets', authenticate, isOrganizer, async (req, res) => 
                      AND r.status IN ('Purchased', 'Confirmed', 'RSVPed')),
                     0
                 ) as sold,
-                COALESCE(tc.price, 0.00) * COALESCE(
-                    (SELECT COUNT(*) 
+                COALESCE(
+                    (SELECT SUM(r.paid_amount) 
                      FROM registrations r 
                      WHERE r.event_id = tc.event_id 
                      AND r.ticket_type = tc.name
                      AND r.status IN ('Purchased', 'Confirmed', 'RSVPed')),
-                    0
+                    0.00
                 ) as revenue
              FROM ticket_categories tc
              JOIN events e ON tc.event_id = e.id
@@ -535,7 +567,9 @@ router.get('/organizer/tickets', authenticate, isOrganizer, async (req, res) => 
                 price: parseFloat(ticket.price),
                 sold: sold,
                 revenue: parseFloat(ticket.revenue),
-                status: status
+                status: status,
+                discount_type: ticket.discount_type || 'none',
+                discount_value: parseFloat(ticket.discount_value || 0)
             };
         });
 
@@ -719,13 +753,15 @@ router.post('/', authenticate, isOrganizer, eventValidation.create, async (req, 
         if (ticket_categories && Array.isArray(ticket_categories) && ticket_categories.length > 0) {
             for (const ticketCategory of ticket_categories) {
                 await db.query(
-                    `INSERT INTO ticket_categories (event_id, name, price, capacity)
-                     VALUES ($1, $2, $3, $4)`,
+                    `INSERT INTO ticket_categories (event_id, name, price, capacity, discount_type, discount_value)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
                     [
                         event.id,
                         ticketCategory.name,
                         ticketCategory.price || 0,
-                        ticketCategory.capacity || 0
+                        ticketCategory.capacity || 0,
+                        ticketCategory.discount_type || 'none',
+                        ticketCategory.discount_value || 0
                     ]
                 );
             }
@@ -743,8 +779,25 @@ router.post('/', authenticate, isOrganizer, eventValidation.create, async (req, 
 
         await createNotification(
             req.user.id,
-            `Your event "${event.title}" has been submitted and is pending approval.`
+            `Your event "${event.title}" has been submitted and is pending approval.`,
+            null,
+            'Organizer'
         );
+
+        // Notify all Administrators of the pending approval request
+        try {
+            const adminsResult = await db.query("SELECT id FROM users WHERE role = 'Administrator'");
+            for (const admin of adminsResult.rows) {
+                await createNotification(
+                    admin.id,
+                    `There is a request of event approval for event: "${event.title}".`,
+                    null,
+                    'Administrator'
+                );
+            }
+        } catch (adminNotifyError) {
+            console.error('Error notifying administrators of event creation:', adminNotifyError);
+        }
 
         res.status(201).json({
             success: true,
@@ -815,15 +868,27 @@ router.put('/registrations/:id/status', authenticate, isOrganizer, async (req, r
             [status, id]
         );
 
-        const eventTitleResult = await db.query(
-            'SELECT title FROM events WHERE id = $1',
+        const eventResult = await db.query(
+            'SELECT * FROM events WHERE id = $1',
             [registration.event_id]
         );
-        const eventTitle = eventTitleResult.rows[0]?.title || 'your event';
+        const event = eventResult.rows[0];
+        const eventTitle = event?.title || 'your event';
 
         await createNotification(
             registration.user_id,
-            `Your registration for "${eventTitle}" is now ${status}.`
+            `Your registration for "${eventTitle}" is now ${status}.`,
+            event ? {
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                venue: event.location_venue,
+                city: event.city,
+                country: event.country,
+                latitude: event.location_latitude,
+                longitude: event.location_longitude
+            } : null,
+            'User'
         );
 
         res.json({
@@ -1074,6 +1139,29 @@ router.post('/:id/rsvp', authenticate, registrationValidation.rsvp, async (req, 
             ipAddress: req.ip || req.connection.remoteAddress
         });
 
+        // Send real-time in-app notification & Nodemailer HTML email alert with map coordinates
+        await createNotification(
+            req.user.id,
+            `You have successfully registered (RSVPed) for the event "${event.title}".`,
+            {
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                venue: event.location_venue,
+                city: event.city,
+                country: event.country,
+                latitude: event.location_latitude,
+                longitude: event.location_longitude
+            },
+            'User'
+        );
+        await createNotification(
+            event.organizer_id,
+            `New RSVP registration for "${event.title}".`,
+            null,
+            'Organizer'
+        );
+
         res.status(201).json({
             success: true,
             message: 'Successfully registered for event',
@@ -1196,12 +1284,23 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
             });
         }
 
+        // Calculate discounted price
+        let purchasePrice = parseFloat(ticketCategory.price);
+        if (ticketCategory.discount_type === 'percentage') {
+            const discountPct = parseFloat(ticketCategory.discount_value) || 0;
+            purchasePrice = purchasePrice * (1 - discountPct / 100);
+        } else if (ticketCategory.discount_type === 'fixed') {
+            const discountAmt = parseFloat(ticketCategory.discount_value) || 0;
+            purchasePrice = Math.max(0, purchasePrice - discountAmt);
+        }
+        purchasePrice = Math.round(purchasePrice * 100) / 100;
+
         // Create registration with ticket_type set to ticket category name and Pending status for admin approval
         const regResult = await db.query(
             `INSERT INTO registrations (user_id, event_id, status, ticket_type, paid_amount, payment_method, transaction_ref) 
              VALUES ($1, $2, 'Pending', $3, $4, $5, $6) 
              RETURNING *`,
-            [req.user.id, id, ticketCategory.name, ticketCategory.price, payment_method, transaction_ref]
+            [req.user.id, id, ticketCategory.name, purchasePrice, payment_method, transaction_ref]
         );
 
         const registrationId = regResult.rows[0].id;
@@ -1211,7 +1310,7 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
             `INSERT INTO tickets (registration_id, ticket_type, price, is_confirmed) 
              VALUES ($1, $2, $3, FALSE) 
              RETURNING *`,
-            [registrationId, ticketCategory.name, ticketCategory.price]
+            [registrationId, ticketCategory.name, purchasePrice]
         );
 
         // Log purchase
@@ -1227,18 +1326,31 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
                 ticket_category_id,
                 payment_method,
                 transaction_ref,
-                amount: ticketCategory.price
+                amount: purchasePrice
             },
             ipAddress: req.ip || req.connection.remoteAddress
         });
 
         await createNotification(
             req.user.id,
-            `Ticket purchased for "${event.title}". Your registration is pending confirmation.`
+            `Ticket purchased for "${event.title}". Your registration is pending confirmation.`,
+            {
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                venue: event.location_venue,
+                city: event.city,
+                country: event.country,
+                latitude: event.location_latitude,
+                longitude: event.location_longitude
+            },
+            'User'
         );
         await createNotification(
             event.organizer_id,
-            `New ticket purchase for "${event.title}" (${ticketCategory.name}).`
+            `New ticket purchase for "${event.title}" (${ticketCategory.name}).`,
+            null,
+            'Organizer'
         );
 
         res.status(201).json({
@@ -1330,17 +1442,41 @@ router.post('/:id/register', authenticate, async (req, res) => {
         if (event.is_paid) {
             await createNotification(
                 req.user.id,
-                `Registration started for "${event.title}". Complete payment to confirm your spot.`
+                `Registration started for "${event.title}". Complete payment to confirm your spot.`,
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    venue: event.location_venue,
+                    city: event.city,
+                    country: event.country,
+                    latitude: event.location_latitude,
+                    longitude: event.location_longitude
+                },
+                'User'
             );
         } else {
             await createNotification(
                 req.user.id,
-                `You have successfully registered for "${event.title}".`
+                `You have successfully registered for "${event.title}".`,
+                {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    venue: event.location_venue,
+                    city: event.city,
+                    country: event.country,
+                    latitude: event.location_latitude,
+                    longitude: event.location_longitude
+                },
+                'User'
             );
         }
         await createNotification(
             event.organizer_id,
-            `New registration for "${event.title}".`
+            `New registration for "${event.title}".`,
+            null,
+            'Organizer'
         );
 
         res.status(201).json({

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAuth } from "@/components/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -74,6 +75,7 @@ function QuickAction({ icon: Icon, label, href }: { icon: React.ElementType, lab
 }
 
 export default function OrganiserDashboard() {
+    const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
     const [stats, setStats] = useState<any>(null)
     const [myEvents, setMyEvents] = useState<any[]>([])
@@ -89,7 +91,7 @@ export default function OrganiserDashboard() {
                     eventsApi.getOrganizerStats(),
                     eventsApi.getOrganizerEvents({ limit: 5 }),
                     eventsApi.getOrganizerRegistrations({ limit: 5 }),
-                    notificationsApi.getMyNotifications()
+                    notificationsApi.getMyNotifications('Organizer')
                 ])
                 setStats(statsRes.data)
                 setMyEvents(eventsRes.data.events)
@@ -101,8 +103,24 @@ export default function OrganiserDashboard() {
                 setLoading(false)
             }
         }
+
+        if (authLoading || !user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+            return
+        }
         fetchDashboardData()
-    }, [])
+    }, [user, authLoading])
+
+    if (authLoading) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-crimson" />
+            </div>
+        )
+    }
+
+    if (!user || (user.role !== 'Organizer' && user.role !== 'Administrator')) {
+        return null
+    }
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ETB' }).format(amount);
@@ -116,7 +134,7 @@ export default function OrganiserDashboard() {
                     <p className="text-muted-foreground">Welcome back! Here's how your events are performing.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button asChild className="bg-[#AC1212] hover:bg-[#8a0f0f]">
+                    <Button asChild className="bg-crimson hover:bg-crimson-dark">
                         <Link href="/organiser/create">
                             <Plus className="mr-2 h-4 w-4" /> Create Event
                         </Link>
@@ -134,7 +152,7 @@ export default function OrganiserDashboard() {
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <Loader2 className="h-10 w-10 animate-spin text-[#AC1212]" />
+                    <Loader2 className="h-10 w-10 animate-spin text-crimson" />
                     <p className="text-muted-foreground">Loading dashboard data...</p>
                 </div>
             ) : (
@@ -274,7 +292,7 @@ export default function OrganiserDashboard() {
                                     <h3 className={`text-xl font-bold ${theme === "dark" ? "text-slate-100" : "text-slate-900"}`}>Ready to grow your audience?</h3>
                                     <p className={theme === "dark" ? "text-slate-400" : "text-muted-foreground"}>Create a new event and start selling tickets today.</p>
                                 </div>
-                                <Button asChild className="bg-[#AC1212] hover:bg-[#8a0f0f] text-white font-semibold">
+                                <Button asChild className="bg-crimson hover:bg-crimson-dark text-white font-semibold">
                                     <Link href="/organiser/create">
                                         <Plus className="h-5 w-5 mr-2" />
                                         Create New Event
