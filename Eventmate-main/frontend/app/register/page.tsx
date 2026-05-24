@@ -69,8 +69,9 @@ export default function RegisterPage() {
 
         try {
             await signUp(displayName, email, password, role);
-            // Redirect to verify page
-            router.push(`/verify?email=${encodeURIComponent(email)}`);
+            router.push(
+                `/verify?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`
+            );
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
             // If the backend returns a specific error for email, it will be displayed

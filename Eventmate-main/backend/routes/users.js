@@ -1,108 +1,201 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { userValidation } = require('../middleware/validation');
 const { logger } = require('../utils/logger');
+const upload = require('../middleware/avatarUpload');
 
 const router = express.Router();
 
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Validate new password meets strength requirements:
+ * ≥8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character
+ */
+function validatePasswordStrength(password) {
+    if (!password || password.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    if (!/[^A-Za-z0-9]/.test(password)) return 'Password must contain at least one special character';
+    return null;
+}
+
+/**
+ * Remove an old avatar file from disk safely.
+ * Only removes files inside the uploads/profile-images directory.
+ */
+function deleteOldAvatar(avatarUrl) {
+    if (!avatarUrl) return;
+    try {
+        // avatarUrl is like  /uploads/profile-images/avatar_3_1716553200000.jpg
+        if (!avatarUrl.startsWith('/uploads/profile-images/')) return;
+        const filename = path.basename(avatarUrl);
+        const filepath = path.join(__dirname, '../../uploads/profile-images', filename);
+        if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
+        }
+    } catch (err) {
+        console.error('Failed to delete old avatar:', err.message);
+    }
+}
+
+// ─── routes ─────────────────────────────────────────────────────────────────
+
 /**
  * GET /user/profile
- * Get current user's profile
+ * Get current user's profile (includes avatar_url, phone, bio)
  */
 router.get('/profile', authenticate, async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT id, name, email, role, created_at FROM users WHERE id = $1',
+            'SELECT id, name, email, role, avatar_url, phone, bio, created_at FROM users WHERE id = $1',
             [req.user.id]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        res.json({
-            success: true,
-            data: {
-                user: result.rows[0]
-            }
-        });
+        res.json({ success: true, data: { user: result.rows[0] } });
     } catch (error) {
         console.error('Get profile error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error getting profile'
-        });
+        res.status(500).json({ success: false, message: 'Error getting profile' });
     }
 });
 
 /**
  * PUT /user/profile
- * Update current user's profile
+ * Update current user's profile (name, phone, bio)
  */
 router.put('/profile', authenticate, userValidation.updateProfile, async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, phone, bio } = req.body;
 
         const updates = [];
         const values = [];
         let paramCount = 1;
 
-        if (name) {
+        if (name !== undefined) {
             updates.push(`name = $${paramCount}`);
-            values.push(name);
+            values.push(name.trim());
+            paramCount++;
+        }
+        if (phone !== undefined) {
+            updates.push(`phone = $${paramCount}`);
+            values.push(phone.trim() || null);
+            paramCount++;
+        }
+        if (bio !== undefined) {
+            updates.push(`bio = $${paramCount}`);
+            values.push(bio.trim() || null);
             paramCount++;
         }
 
         if (updates.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No fields to update'
-            });
+            return res.status(400).json({ success: false, message: 'No fields to update' });
         }
 
+        // Always update updated_at
+        updates.push(`updated_at = NOW()`);
         values.push(req.user.id);
 
         const result = await db.query(
-            `UPDATE users SET ${updates.join(', ')} 
-             WHERE id = $${paramCount} 
-             RETURNING id, name, email, role, created_at`,
+            `UPDATE users SET ${updates.join(', ')}
+             WHERE id = $${paramCount}
+             RETURNING id, name, email, role, avatar_url, phone, bio, created_at`,
             values
         );
 
-        // Log the profile update
         await logger.log({
             userId: req.user.id,
             action: 'Profile update',
             entityType: 'user',
             entityId: req.user.id,
             details: { updatedFields: Object.keys(req.body) },
-            ipAddress: req.ip || req.connection.remoteAddress
+            ipAddress: req.ip || req.connection?.remoteAddress
         });
 
         res.json({
             success: true,
             message: 'Profile updated successfully',
-            data: {
-                user: result.rows[0]
-            }
+            data: { user: result.rows[0] }
         });
     } catch (error) {
         console.error('Update profile error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error updating profile'
+        res.status(500).json({ success: false, message: 'Error updating profile' });
+    }
+});
+
+/**
+ * POST /user/avatar
+ * Upload or replace the current user's profile photo.
+ * Deletes the old avatar file from disk when a new one is uploaded.
+ */
+router.post('/avatar', authenticate, (req, res, next) => {
+    upload.single('avatar')(req, res, (err) => {
+        if (err) {
+            // Multer validation errors (size, type, etc.)
+            return res.status(400).json({ success: false, message: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+
+        // Build the public URL for this avatar
+        const avatarUrl = `/uploads/profile-images/${req.file.filename}`;
+
+        // Fetch current avatar to delete the old file
+        const current = await db.query('SELECT avatar_url FROM users WHERE id = $1', [req.user.id]);
+        const oldAvatar = current.rows[0]?.avatar_url;
+
+        // Update DB with new avatar URL
+        const result = await db.query(
+            `UPDATE users SET avatar_url = $1, updated_at = NOW()
+             WHERE id = $2
+             RETURNING id, name, email, role, avatar_url, phone, bio, created_at`,
+            [avatarUrl, req.user.id]
+        );
+
+        // Remove old file AFTER successful DB update
+        deleteOldAvatar(oldAvatar);
+
+        await logger.log({
+            userId: req.user.id,
+            action: 'Avatar upload',
+            entityType: 'user',
+            entityId: req.user.id,
+            details: { avatarUrl },
+            ipAddress: req.ip || req.connection?.remoteAddress
         });
+
+        res.json({
+            success: true,
+            message: 'Avatar uploaded successfully',
+            data: { user: result.rows[0] }
+        });
+    } catch (error) {
+        // If DB update failed, remove the newly-uploaded file to avoid orphans
+        if (req.file) {
+            try { fs.unlinkSync(req.file.path); } catch (_) {}
+        }
+        console.error('Avatar upload error:', error);
+        res.status(500).json({ success: false, message: 'Error uploading avatar' });
     }
 });
 
 /**
  * PUT /user/password
- * Change current user's password
+ * Change current user's password.
+ * Requires current password + new password meeting strength rules.
  */
 router.put('/password', authenticate, async (req, res) => {
     try {
@@ -115,6 +208,12 @@ router.put('/password', authenticate, async (req, res) => {
             });
         }
 
+        // Strength check
+        const strengthError = validatePasswordStrength(newPassword);
+        if (strengthError) {
+            return res.status(400).json({ success: false, message: strengthError });
+        }
+
         // Get current password hash
         const result = await db.query(
             'SELECT password_hash FROM users WHERE id = $1',
@@ -122,52 +221,37 @@ router.put('/password', authenticate, async (req, res) => {
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         // Verify current password
         const isMatch = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
-
         if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: 'Current password is incorrect'
-            });
+            return res.status(401).json({ success: false, message: 'Current password is incorrect' });
         }
 
         // Hash new password
-        const salt = await bcrypt.genSalt(10);
+        const salt = await bcrypt.genSalt(12);
         const newPasswordHash = await bcrypt.hash(newPassword, salt);
 
-        // Update password
         await db.query(
-            'UPDATE users SET password_hash = $1 WHERE id = $2',
+            'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
             [newPasswordHash, req.user.id]
         );
 
-        // Log the password change
         await logger.log({
             userId: req.user.id,
             action: 'Password change',
             entityType: 'user',
             entityId: req.user.id,
             details: {},
-            ipAddress: req.ip || req.connection.remoteAddress
+            ipAddress: req.ip || req.connection?.remoteAddress
         });
 
-        res.json({
-            success: true,
-            message: 'Password changed successfully'
-        });
+        res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
         console.error('Change password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error changing password'
-        });
+        res.status(500).json({ success: false, message: 'Error changing password' });
     }
 });
 
@@ -188,18 +272,10 @@ router.get('/my-events', authenticate, async (req, res) => {
             [req.user.id]
         );
 
-        res.json({
-            success: true,
-            data: {
-                events: result.rows
-            }
-        });
+        res.json({ success: true, data: { events: result.rows } });
     } catch (error) {
         console.error('Get my events error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error getting user events'
-        });
+        res.status(500).json({ success: false, message: 'Error getting user events' });
     }
 });
 
@@ -221,58 +297,10 @@ router.get('/notifications', authenticate, async (req, res) => {
         query += ' ORDER BY sent_at DESC LIMIT 50';
 
         const result = await db.query(query, params);
-
-        res.json({
-            success: true,
-            data: {
-                notifications: result.rows
-            }
-        });
+        res.json({ success: true, data: { notifications: result.rows } });
     } catch (error) {
         console.error('Get notifications error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error getting notifications'
-        });
-    }
-});
-
-/**
- * PATCH /user/notifications/:id/read
- * Mark a notification as read
- */
-router.patch('/notifications/:id/read', authenticate, async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        // Verify the notification belongs to the user
-        const checkResult = await db.query(
-            'SELECT id FROM notifications WHERE id = $1 AND user_id = $2',
-            [id, req.user.id]
-        );
-
-        if (checkResult.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Notification not found'
-            });
-        }
-
-        await db.query(
-            'UPDATE notifications SET is_read = TRUE WHERE id = $1',
-            [id]
-        );
-
-        res.json({
-            success: true,
-            message: 'Notification marked as read'
-        });
-    } catch (error) {
-        console.error('Mark notification read error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error marking notification as read'
-        });
+        res.status(500).json({ success: false, message: 'Error getting notifications' });
     }
 });
 
@@ -286,17 +314,35 @@ router.patch('/notifications/read-all', authenticate, async (req, res) => {
             'UPDATE notifications SET is_read = TRUE WHERE user_id = $1 AND is_read = FALSE',
             [req.user.id]
         );
-
-        res.json({
-            success: true,
-            message: 'All notifications marked as read'
-        });
+        res.json({ success: true, message: 'All notifications marked as read' });
     } catch (error) {
         console.error('Mark all notifications read error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error marking all notifications as read'
-        });
+        res.status(500).json({ success: false, message: 'Error marking all notifications as read' });
+    }
+});
+
+/**
+ * PATCH /user/notifications/:id/read
+ * Mark a notification as read
+ */
+router.patch('/notifications/:id/read', authenticate, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const checkResult = await db.query(
+            'SELECT id FROM notifications WHERE id = $1 AND user_id = $2',
+            [id, req.user.id]
+        );
+
+        if (checkResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Notification not found' });
+        }
+
+        await db.query('UPDATE notifications SET is_read = TRUE WHERE id = $1', [id]);
+        res.json({ success: true, message: 'Notification marked as read' });
+    } catch (error) {
+        console.error('Mark notification read error:', error);
+        res.status(500).json({ success: false, message: 'Error marking notification as read' });
     }
 });
 
@@ -314,19 +360,10 @@ router.get('/favorites', authenticate, async (req, res) => {
              ORDER BY f.created_at DESC`,
             [req.user.id]
         );
-
-        res.json({
-            success: true,
-            data: {
-                events: result.rows
-            }
-        });
+        res.json({ success: true, data: { events: result.rows } });
     } catch (error) {
         console.error('Get favorites error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error getting favorites'
-        });
+        res.status(500).json({ success: false, message: 'Error getting favorites' });
     }
 });
 
@@ -338,48 +375,29 @@ router.post('/favorites/:eventId', authenticate, async (req, res) => {
     try {
         const { eventId } = req.params;
 
-        // Check if event exists
-        const eventCheck = await db.query(
-            'SELECT id FROM events WHERE id = $1',
-            [eventId]
-        );
-
+        const eventCheck = await db.query('SELECT id FROM events WHERE id = $1', [eventId]);
         if (eventCheck.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Event not found'
-            });
+            return res.status(404).json({ success: false, message: 'Event not found' });
         }
 
-        // Check if already favorited
         const existingFav = await db.query(
             'SELECT id FROM favorites WHERE user_id = $1 AND event_id = $2',
             [req.user.id, eventId]
         );
 
         if (existingFav.rows.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Event already in favorites'
-            });
+            return res.status(400).json({ success: false, message: 'Event already in favorites' });
         }
 
-        // Add to favorites
         await db.query(
             'INSERT INTO favorites (user_id, event_id) VALUES ($1, $2)',
             [req.user.id, eventId]
         );
 
-        res.status(201).json({
-            success: true,
-            message: 'Event added to favorites'
-        });
+        res.status(201).json({ success: true, message: 'Event added to favorites' });
     } catch (error) {
         console.error('Add favorite error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error adding favorite'
-        });
+        res.status(500).json({ success: false, message: 'Error adding favorite' });
     }
 });
 
@@ -391,35 +409,24 @@ router.delete('/favorites/:eventId', authenticate, async (req, res) => {
     try {
         const { eventId } = req.params;
 
-        // Check if favorite exists
         const existingFav = await db.query(
             'SELECT id FROM favorites WHERE user_id = $1 AND event_id = $2',
             [req.user.id, eventId]
         );
 
         if (existingFav.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Favorite not found'
-            });
+            return res.status(404).json({ success: false, message: 'Favorite not found' });
         }
 
-        // Remove from favorites
         await db.query(
             'DELETE FROM favorites WHERE user_id = $1 AND event_id = $2',
             [req.user.id, eventId]
         );
 
-        res.json({
-            success: true,
-            message: 'Event removed from favorites'
-        });
+        res.json({ success: true, message: 'Event removed from favorites' });
     } catch (error) {
         console.error('Remove favorite error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error removing favorite'
-        });
+        res.status(500).json({ success: false, message: 'Error removing favorite' });
     }
 });
 

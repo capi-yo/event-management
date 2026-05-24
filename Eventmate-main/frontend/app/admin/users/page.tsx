@@ -50,6 +50,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { adminApi } from '@/lib/api'
+import { FeedbackButton } from '@/components/FeedbackButton'
+import { useButtonFeedback } from '@/hooks/useButtonFeedback'
 
 export default function AdminUsersPage() {
     const { theme } = useTheme()
@@ -75,6 +77,9 @@ export default function AdminUsersPage() {
     const [editRole, setEditRole] = useState<string>('')
     const [editStatus, setEditStatus] = useState<string>('')
     const [editLoading, setEditLoading] = useState(false)
+    const [statusUpdating, setStatusUpdating] = useState(false)
+    const saveEditFeedback = useButtonFeedback()
+    const statusConfirmFeedback = useButtonFeedback()
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     const [viewDialogOpen, setViewDialogOpen] = useState(false)
     const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -121,19 +126,23 @@ export default function AdminUsersPage() {
     const handleUpdateStatus = async () => {
         if (!selectedUser) return
         const newStatus = selectedUser.status === 'Active' ? 'Suspended' : 'Active'
+        setStatusUpdating(true)
         try {
             const res = await adminApi.updateUserStatus(selectedUser.id, newStatus)
             if (res.success) {
-                setSuccessMessage(`User account has been ${newStatus.toLowerCase()} successfully.`)
-                setTimeout(() => setSuccessMessage(null), 3000)
+                statusConfirmFeedback.showConfirmed()
                 fetchUsers()
+                setTimeout(() => {
+                    setConfirmDialogOpen(false)
+                    setSelectedUser(null)
+                    setStatusUpdating(false)
+                }, 1000)
+                return
             }
         } catch (err: any) {
             setError(err.message || 'Failed to update user status')
             setTimeout(() => setError(null), 5000)
-        } finally {
-            setConfirmDialogOpen(false)
-            setSelectedUser(null)
+            setStatusUpdating(false)
         }
     }
 
@@ -187,12 +196,12 @@ export default function AdminUsersPage() {
             // Only call API if there are changes
             if (Object.keys(updateData).length > 0) {
                 await adminApi.updateUser(selectedUser.id, updateData)
+                saveEditFeedback.showSaved()
+                fetchUsers()
+                setTimeout(() => setEditDialogOpen(false), 1000)
+            } else {
+                setEditDialogOpen(false)
             }
-
-            setSuccessMessage('User updated successfully')
-            setTimeout(() => setSuccessMessage(null), 3000)
-            fetchUsers()
-            setEditDialogOpen(false)
         } catch (err: any) {
             setError(err.message || 'Failed to update user')
             setTimeout(() => setError(null), 5000)
@@ -731,14 +740,14 @@ export default function AdminUsersPage() {
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveEdit} disabled={editLoading}>
-                            {editLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : 'Save Changes'}
-                        </Button>
+                        <FeedbackButton
+                            onClick={handleSaveEdit}
+                            loading={editLoading}
+                            feedback={saveEditFeedback.feedback}
+                            defaultLabel="Save Changes"
+                            loadingLabel="Saving..."
+                            savedLabel="Saved"
+                        />
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -757,12 +766,15 @@ export default function AdminUsersPage() {
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>Cancel</Button>
-                        <Button
+                        <FeedbackButton
                             variant={selectedUser?.status === 'Active' ? 'destructive' : 'default'}
                             onClick={handleUpdateStatus}
-                        >
-                            {selectedUser?.status === 'Active' ? 'Suspend User' : 'Activate User'}
-                        </Button>
+                            loading={statusUpdating}
+                            feedback={statusConfirmFeedback.feedback}
+                            defaultLabel={selectedUser?.status === 'Active' ? 'Suspend User' : 'Activate User'}
+                            loadingLabel="Updating..."
+                            confirmedLabel="Confirmed"
+                        />
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

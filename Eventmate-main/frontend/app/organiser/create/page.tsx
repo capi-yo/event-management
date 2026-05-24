@@ -43,6 +43,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { eventsApi } from "@/lib/api";
+import { FeedbackButton } from "@/components/FeedbackButton";
+import { useButtonFeedback } from "@/hooks/useButtonFeedback";
 
 export default function OrganiserCreateEventPage() {
   const { theme } = useTheme();
@@ -52,6 +54,7 @@ export default function OrganiserCreateEventPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const createFeedback = useButtonFeedback();
   const [uploading, setUploading] = useState(false);
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -198,8 +201,8 @@ export default function OrganiserCreateEventPage() {
       console.log("Event data being sent:", eventData);
       await eventsApi.create(eventData);
       setSuccess(true);
+      createFeedback.showConfirmed();
 
-      // Redirect to events page after success
       setTimeout(() => {
         router.push("/organiser/events");
       }, 2000);
@@ -993,25 +996,20 @@ export default function OrganiserCreateEventPage() {
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button
+            <FeedbackButton
               onClick={handleSubmit}
               className={
                 theme === "dark"
                   ? "bg-green-600 hover:bg-green-700"
                   : "bg-green-600 hover:bg-green-700"
               }
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="mr-2 h-4 w-4" /> Create Event
-                </>
-              )}
-            </Button>
+              loading={loading}
+              feedback={createFeedback.feedback}
+              defaultLabel="Create Event"
+              loadingLabel="Creating..."
+              confirmedLabel="Confirmed"
+              icon={CheckCircle}
+            />
           )}
         </div>
       </div>

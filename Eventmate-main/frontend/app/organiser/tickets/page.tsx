@@ -57,6 +57,8 @@ import {
 } from "lucide-react"
 import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
+import { FeedbackButton } from '@/components/FeedbackButton'
+import { useButtonFeedback } from '@/hooks/useButtonFeedback'
 
 export default function OrganiserTicketsPage() {
     const { user, loading: authLoading } = useAuth()
@@ -75,6 +77,7 @@ export default function OrganiserTicketsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [deleting, setDeleting] = useState(false)
     const [saving, setSaving] = useState(false)
+    const saveEditFeedback = useButtonFeedback()
     const [editForm, setEditForm] = useState({ name: '', price: '', capacity: '' })
     const { toast } = useToast()
 
@@ -119,10 +122,13 @@ export default function OrganiserTicketsPage() {
                 title: "Ticket Updated",
                 description: "The ticket category has been updated successfully.",
             })
-            
-            setEditDialogOpen(false)
-            setSelectedTicket(null)
-            fetchTickets() // Refresh the list
+
+            saveEditFeedback.showSaved()
+            fetchTickets()
+            setTimeout(() => {
+                setEditDialogOpen(false)
+                setSelectedTicket(null)
+            }, 1000)
         } catch (err: any) {
             toast({
                 title: "Update Failed",
@@ -640,20 +646,16 @@ export default function OrganiserTicketsPage() {
                         >
                             Cancel
                         </Button>
-                        <Button 
+                        <FeedbackButton
                             onClick={handleSaveEdit}
-                            disabled={saving || !editForm.name || !editForm.price}
+                            disabled={!editForm.name || !editForm.price}
+                            loading={saving}
+                            feedback={saveEditFeedback.feedback}
+                            defaultLabel="Save Changes"
+                            loadingLabel="Saving..."
+                            savedLabel="Saved"
                             className="bg-[#DC143C] hover:bg-[#B01030] text-white"
-                        >
-                            {saving ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                'Save Changes'
-                            )}
-                        </Button>
+                        />
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -54,6 +54,8 @@ import {
 } from "lucide-react"
 import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
+import { FeedbackButton } from '@/components/FeedbackButton'
+import { useButtonFeedback } from '@/hooks/useButtonFeedback'
 import { useToast } from '@/components/ui/use-toast'
 import LocationPicker from '@/components/LocationPicker'
 import LocationAutocomplete from '@/components/LocationAutocomplete'
@@ -83,6 +85,8 @@ export default function OrganiserEventsPage() {
     const [selectedEvent, setSelectedEvent] = useState<any>(null)
     const [detailsOpen, setDetailsOpen] = useState(false)
     const [editOpen, setEditOpen] = useState(false)
+    const [editSaving, setEditSaving] = useState(false)
+    const saveEventFeedback = useButtonFeedback()
     const [ticketsOpen, setTicketsOpen] = useState(false)
     const [editFormData, setEditFormData] = useState<any>({})
     const [uploading, setUploading] = useState(false)
@@ -638,27 +642,34 @@ export default function OrganiserEventsPage() {
                                 <Button variant="outline" onClick={() => setEditOpen(false)} className={theme === "dark" ? "border-slate-700" : ""}>
                                     Cancel
                                 </Button>
-                                <Button
+                                <FeedbackButton
                                     className="bg-crimson hover:bg-crimson-dark"
+                                    loading={editSaving}
+                                    feedback={saveEventFeedback.feedback}
+                                    defaultLabel="Save Changes"
+                                    loadingLabel="Saving..."
+                                    savedLabel="Saved"
                                     onClick={async () => {
+                                        if (!selectedEvent) return
+                                        setEditSaving(true)
                                         try {
                                             await eventsApi.updateEvent(selectedEvent.id, editFormData)
                                             toast({ title: "Success", description: "Event updated successfully" })
-                                            setEditOpen(false)
-                                            // Refresh events list
+                                            saveEventFeedback.showSaved()
                                             const response = await eventsApi.getOrganizerEvents({ page: currentPage, limit: ITEMS_PER_PAGE })
                                             setEvents(response.data.events || [])
+                                            setTimeout(() => setEditOpen(false), 1000)
                                         } catch (err: any) {
                                             let errorMsg = err.message || "Failed to update event"
                                             if (err.errors && Array.isArray(err.errors)) {
                                                 errorMsg = `Validation failed: ${err.errors.map((e: any) => e.message).join('. ')}`
                                             }
                                             toast({ title: "Error", description: errorMsg, variant: "destructive" })
+                                        } finally {
+                                            setEditSaving(false)
                                         }
                                     }}
-                                >
-                                    Save Changes
-                                </Button>
+                                />
                             </div>
                         </div>
                     )}

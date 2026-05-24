@@ -47,9 +47,11 @@ import {
     AlertCircle,
     Trash2,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Check
 } from "lucide-react"
 import { adminApi } from '@/lib/api'
+import { useActionFeedbackMap } from '@/hooks/useButtonFeedback'
 
 export default function AdminEventsPage() {
     const { theme } = useTheme()
@@ -66,6 +68,7 @@ export default function AdminEventsPage() {
     const [viewDialogOpen, setViewDialogOpen] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [eventToDelete, setEventToDelete] = useState<number | null>(null)
+    const eventActionFeedback = useActionFeedbackMap()
 
     const fetchEvents = useCallback(async () => {
         try {
@@ -97,6 +100,7 @@ export default function AdminEventsPage() {
         try {
             const res = await adminApi.updateEventStatus(eventId, status)
             if (res.success) {
+                eventActionFeedback.triggerConfirmed(`${eventId}-${status}`)
                 setSuccessMessage(`Event ${status.toLowerCase()} successfully.`)
                 setTimeout(() => setSuccessMessage(null), 3000)
                 fetchEvents()
@@ -335,7 +339,11 @@ export default function AdminEventsPage() {
                                                                 onClick={() => handleUpdateStatus(event.id, 'Approved')}
                                                                 title="Approve Event"
                                                             >
-                                                                <CheckCircle className="h-4 w-4" />
+                                                                {eventActionFeedback.getFeedback(`${event.id}-Approved`) === 'confirmed' ? (
+                                                                    <Check className="h-4 w-4 text-green-600" />
+                                                                ) : (
+                                                                    <CheckCircle className="h-4 w-4" />
+                                                                )}
                                                             </Button>
                                                             <Button
                                                                 variant="ghost"
@@ -344,7 +352,11 @@ export default function AdminEventsPage() {
                                                                 onClick={() => handleUpdateStatus(event.id, 'Rejected')}
                                                                 title="Reject Event"
                                                             >
-                                                                <XCircle className="h-4 w-4" />
+                                                                {eventActionFeedback.getFeedback(`${event.id}-Rejected`) === 'confirmed' ? (
+                                                                    <Check className="h-4 w-4 text-green-600" />
+                                                                ) : (
+                                                                    <XCircle className="h-4 w-4" />
+                                                                )}
                                                             </Button>
                                                         </>
                                                     )}

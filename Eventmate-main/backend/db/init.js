@@ -200,6 +200,24 @@ const initializeDatabase = async () => {
             console.log('  ✗ registrations_status_check migration: ' + err.message.substring(0, 50));
         }
 
+        // Migration: Email verification columns on users table
+        console.log('Running migrations for users table (verification)...');
+        const userMigrations = [
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(10)',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(10)',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP',
+        ];
+        for (const stmt of userMigrations) {
+            try {
+                await pool.query(stmt);
+                console.log('  ✓ User verification migration applied');
+            } catch (err) {
+                console.log('  ✗ User verification migration: ' + err.message.substring(0, 50));
+            }
+        }
+
         // Migration: Add discount columns to ticket_categories table
         console.log('Running migrations for ticket_categories table...');
         try {

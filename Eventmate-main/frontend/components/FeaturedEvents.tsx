@@ -77,8 +77,11 @@ const FeaturedEvents = () => {
   return (
     <section className="py-24 habesha-surface">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 flex flex-col items-center">
           <h2 className="text-4xl md:text-5xl font-extrabold font-display mb-4">Featured <span className="text-crimson">Showcases</span></h2>
+          <div className="habesha-divider w-1/2 mb-6">
+            <div className="habesha-divider-icon"></div>
+          </div>
           <p className="text-slate-500 max-w-xl mx-auto">
             A glimpse into the diverse range of events we've brought to life recently.
           </p>
@@ -92,8 +95,7 @@ const FeaturedEvents = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               onClick={() => router.push('/login')}
-              className="group relative bg-white rounded-none overflow-hidden shadow-xl border-b-8 transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-              style={{ borderBottomColor: index === 0 ? '#DC143C' : '#1e293b' }}
+              className="habesha-event-card group relative bg-white cursor-pointer"
             >
               <div className="relative h-80 overflow-hidden">
                 <img
@@ -103,7 +105,7 @@ const FeaturedEvents = () => {
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-6 left-6">
-                  <span className={`px-4 py-2 rounded-none text-xs font-bold uppercase tracking-widest bg-white/90 backdrop-blur-sm ${index === 0 ? 'text-crimson' : 'text-slate-800'}`}>
+                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-white/90 backdrop-blur-sm ${index === 0 ? 'text-crimson' : 'text-slate-800'}`}>
                     {event.category}
                   </span>
                 </div>
@@ -124,7 +126,7 @@ const FeaturedEvents = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="w-12 h-12 rounded-none bg-slate-100 flex items-center justify-center group-hover:bg-crimson group-hover:text-white transition-colors duration-300">
+                  <button className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-crimson group-hover:text-white transition-colors duration-300">
                     <ArrowUpRight size={20} />
                   </button>
                 </div>
@@ -141,7 +143,7 @@ const FeaturedEvents = () => {
                       e.stopPropagation();
                       router.push('/login');
                     }}
-                    className="px-6 py-2 bg-crimson text-white text-xs font-bold uppercase tracking-widest hover:bg-crimson-dark transition-colors"
+                    className="px-6 py-2 bg-crimson text-white text-xs font-bold uppercase tracking-widest hover:bg-crimson-dark transition-colors rounded-lg"
                   >
                     Book Now
                   </button>
@@ -154,7 +156,7 @@ const FeaturedEvents = () => {
         <div className="mt-16 text-center">
           <button 
             onClick={() => router.push('/register')}
-            className="px-10 py-4 rounded-none border-2 border-slate-200 font-bold hover:border-crimson hover:text-crimson transition-all duration-300 cursor-pointer"
+            className="px-10 py-4 rounded-lg border-2 border-slate-300 font-bold hover:border-crimson hover:text-crimson transition-all duration-300 cursor-pointer"
           >
             View All Events
           </button>

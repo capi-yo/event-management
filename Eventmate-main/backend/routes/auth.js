@@ -97,9 +97,12 @@ router.post('/register', userValidation.register, async (req, res) => {
             }
         });
     } catch (error) {
-  console.log("REGISTER ERROR:", error);
-  return res.status(500).json({ message: error.message });
-}
+        console.error('REGISTER ERROR:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Error during registration'
+        });
+    }
 });
 
 /**
@@ -135,12 +138,24 @@ router.post('/login', userValidation.login, async (req, res) => {
             });
         }
 
-        // Check verification status
-        if (user.is_verified === false) {
+        // Check verification status (NULL or false means not verified)
+        if (user.is_verified !== true) {
             return res.status(403).json({
                 success: false,
                 message: 'Please verify your email before logging in.',
                 needsVerification: true
+            });
+        }
+
+        // Block suspended accounts
+        const statusResult = await db.query(
+            'SELECT status FROM users WHERE id = $1',
+            [user.id]
+        );
+        if (statusResult.rows[0]?.status === 'Suspended') {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended. Please contact support.'
             });
         }
 
@@ -187,24 +202,53 @@ router.post('/login', userValidation.login, async (req, res) => {
  * POST /auth/verify
  * Verify user email using the code
  */
-router.post('/verify', async (req, res) => {
+router.post('/verify', userValidation.verify, async (req, res) => {
     try {
         const { email, code } = req.body;
         const result = await db.query(
-            'SELECT id, verification_code_expires FROM users WHERE email = $1 AND verification_code = $2',
-            [email, code]
+            `SELECT id, name, email, role, verification_code, verification_code_expires, is_verified
+             FROM users WHERE email = $1`,
+            [email]
         );
 
         if (result.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No account found for this email'
+            });
+        }
+
+        const user = result.rows[0];
+
+        if (user.is_verified === true) {
+            const token = jwt.sign(
+                { userId: user.id },
+                process.env.JWT_SECRET,
+                { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+            );
+            return res.json({
+                success: true,
+                message: 'Email is already verified',
+                data: {
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role
+                    },
+                    token
+                }
+            });
+        }
+
+        if (!user.verification_code || String(user.verification_code) !== String(code)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid verification code'
             });
         }
 
-        const user = result.rows[0];
         const now = new Date();
-
         if (user.verification_code_expires && new Date(user.verification_code_expires) < now) {
             return res.status(400).json({
                 success: false,
@@ -213,13 +257,28 @@ router.post('/verify', async (req, res) => {
         }
 
         await db.query(
-            'UPDATE users SET is_verified = true, verification_code = NULL, verification_code_expires = NULL WHERE email = $1',
-            [email]
+            'UPDATE users SET is_verified = true, verification_code = NULL, verification_code_expires = NULL WHERE id = $1',
+            [user.id]
+        );
+
+        const token = jwt.sign(
+            { userId: user.id },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
         );
 
         res.json({
             success: true,
-            message: 'Email verified successfully'
+            message: 'Email verified successfully',
+            data: {
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                },
+                token
+            }
         });
     } catch (error) {
         console.error('Verify error:', error);
@@ -234,16 +293,9 @@ router.post('/verify', async (req, res) => {
  * POST /auth/resend-otp
  * Resend verification or password reset OTP
  */
-router.post('/resend-otp', async (req, res) => {
+router.post('/resend-otp', userValidation.resendOtp, async (req, res) => {
     try {
         const { email, type } = req.body; // type can be 'verification' or 'reset'
-
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email is required'
-            });
-        }
 
         const result = await db.query('SELECT id, is_verified FROM users WHERE email = $1', [email]);
         if (result.rows.length === 0) {
@@ -280,7 +332,7 @@ router.post('/resend-otp', async (req, res) => {
             console.log(`======================================================\n`);
         } else {
             // Default to verification
-            if (user.is_verified) {
+            if (user.is_verified === true) {
                 return res.status(400).json({
                     success: false,
                     message: 'Email is already verified.'

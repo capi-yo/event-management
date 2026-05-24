@@ -19,7 +19,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="habesha-footer text-white pt-20 pb-10">
+    <footer className="habesha-footer text-white pt-20 pb-10 border-t border-t-habesha-gold/45">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 lg:col-span-1">
@@ -31,7 +31,7 @@ const Footer = () => {
                 Event<span className="text-crimson">Mate</span>
               </span>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8">
+            <p className="text-white/70 text-sm leading-relaxed mb-8">
               Redefining the art of celebration through meticulous planning and
               creative vision. From the first spark to the final applause.
             </p>
@@ -50,10 +50,10 @@ const Footer = () => {
               ))}
             </div>
           </div>
-
+ 
           <div>
             <h4 className="text-lg font-bold mb-6 font-display">Quick Links</h4>
-            <ul className="space-y-4 text-slate-400 text-sm">
+            <ul className="space-y-4 text-white/70 text-sm">
               <li>
                 <Link href="/#home" className="hover:text-crimson transition-colors">
                   Home
@@ -91,10 +91,10 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
+ 
           <div>
             <h4 className="text-lg font-bold mb-6 font-display">Services</h4>
-            <ul className="space-y-4 text-slate-400 text-sm">
+            <ul className="space-y-4 text-white/70 text-sm">
               <li>
                 <Link
                   href="/events"
@@ -137,10 +137,10 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
+ 
           <div>
             <h4 className="text-lg font-bold mb-6 font-display">Contact Us</h4>
-            <ul className="space-y-4 text-slate-400 text-sm">
+            <ul className="space-y-4 text-white/70 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin size={18} className="text-crimson shrink-0" />
                 <Link href="/#contact" className="hover:text-crimson transition-colors">
@@ -162,8 +162,8 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-xs uppercase tracking-widest font-bold">
+ 
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-white/50 text-xs uppercase tracking-widest font-bold">
           <p>© 2024 EventMate. All rights reserved.</p>
           <div className="flex gap-8">
             <Link href="/terms" className="hover:text-white transition-colors">

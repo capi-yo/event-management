@@ -115,6 +115,22 @@ module.exports = {
 
             console.log('Database schema initialized');
 
+            // Email verification / password reset columns
+            const userMigrations = [
+                'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE',
+                'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(10)',
+                'ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires TIMESTAMP',
+                'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(10)',
+                'ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP',
+            ];
+            for (const stmt of userMigrations) {
+                try {
+                    await pool.query(stmt);
+                } catch (e) {
+                    // Column may already exist with different definition
+                }
+            }
+
             // Try to create admin user
             try {
                 const bcrypt = require('bcryptjs');

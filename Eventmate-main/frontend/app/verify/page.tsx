@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { authApi } from '@/lib/api';
+import { authApi, setToken, setUser } from '@/lib/api';
+import { useAuth } from '@/components/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -14,27 +15,45 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 function VerifyContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { refreshUser } = useAuth();
     
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
     const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'idle'>('idle');
     const [message, setMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [pendingRole, setPendingRole] = useState('');
     
     // Resend OTP Cooldown state
     const [cooldown, setCooldown] = useState(0);
     const [resendLoading, setResendLoading] = useState(false);
 
+    const getRedirectUrl = (role: string): string => {
+        switch (role) {
+            case 'Administrator':
+                return '/admin';
+            case 'Organizer':
+                return '/organiser';
+            default:
+                return '/events';
+        }
+    };
+
     useEffect(() => {
         const emailParam = searchParams.get('email') || '';
         const codeParam = searchParams.get('code') || '';
+        const roleParam = searchParams.get('role') || '';
+        const messageParam = searchParams.get('message') || '';
+
         if (emailParam) setEmail(emailParam);
         if (codeParam) setCode(codeParam);
-        
+        if (roleParam) setPendingRole(roleParam);
+        if (messageParam) setMessage(messageParam);
+
         // Auto-verify if both are present in URL
         if (emailParam && codeParam) {
             setStatus('loading');
-            verifyEmail(emailParam, codeParam);
+            verifyEmail(emailParam, codeParam, roleParam);
         }
     }, [searchParams]);
 
@@ -47,12 +66,22 @@ function VerifyContent() {
         return () => clearTimeout(timer);
     }, [cooldown]);
 
-    const verifyEmail = async (userEmail: string, verificationCode: string) => {
+    const verifyEmail = async (userEmail: string, verificationCode: string, roleHint?: string) => {
         try {
             const res = await authApi.verify(userEmail, verificationCode);
             setStatus('success');
             setSuccessMessage(res.message || 'Your email has been verified successfully.');
             setMessage('');
+
+            if (res.data?.token && res.data?.user) {
+                setToken(res.data.token);
+                setUser(res.data.user);
+                await refreshUser();
+                const role = res.data.user.role || roleHint || pendingRole;
+                setTimeout(() => {
+                    router.push(getRedirectUrl(role));
+                }, 1500);
+            }
         } catch (error: any) {
             setStatus('error');
             setMessage(error.message || 'Failed to verify email. The code might be invalid or expired.');
@@ -70,7 +99,7 @@ function VerifyContent() {
             return;
         }
         setStatus('loading');
-        verifyEmail(email, code);
+        verifyEmail(email, code, pendingRole);
     };
 
     const handleResendOtp = async () => {
@@ -136,7 +165,11 @@ function VerifyContent() {
                                 </svg>
                             </div>
                             <p className="text-green-600 dark:text-green-400 font-medium">{successMessage}</p>
-                            <p className="text-sm text-muted-foreground mt-2">You can now sign in to your account.</p>
+                            <p className="text-sm text-muted-foreground mt-2">
+                                {pendingRole === 'Organizer'
+                                    ? 'Redirecting you to the organiser dashboard...'
+                                    : 'Redirecting you to your account...'}
+                            </p>
                         </div>
                     )}
                     
@@ -165,7 +198,7 @@ function VerifyContent() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    disabled={status === 'loading'}
+                                    disabled={false}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -181,7 +214,7 @@ function VerifyContent() {
                                     maxLength={6}
                                     required
                                     className="text-center font-bold tracking-widest text-lg"
-                                    disabled={status === 'loading'}
+                                    disabled={false}
                                 />
                             </div>
                         </>
@@ -239,7 +272,10 @@ function VerifyContent() {
                         <Button 
                             type="button" 
                             className="w-full bg-crimson hover:bg-crimson-dark"
-                            onClick={() => router.push('/login')}
+                            onClick={() => {
+                                const role = pendingRole;
+                                router.push(role ? `/login?role=${encodeURIComponent(role)}` : '/login');
+                            }}
                         >
                             Go to Login
                         </Button>

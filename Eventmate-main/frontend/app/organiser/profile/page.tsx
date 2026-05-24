@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Mail, Save, LogOut } from 'lucide-react';
 import { userApi } from '@/lib/api';
+import { FeedbackButton } from '@/components/FeedbackButton';
+import { useButtonFeedback } from '@/hooks/useButtonFeedback';
 
 export default function OrganiserProfilePage() {
     const router = useRouter();
@@ -16,8 +18,8 @@ export default function OrganiserProfilePage() {
     const [displayName, setDisplayName] = useState('');
     const [email, setEmail] = useState('');
     const [saving, setSaving] = useState(false);
-    const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
+    const saveFeedback = useButtonFeedback();
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -58,13 +60,10 @@ export default function OrganiserProfilePage() {
         e.preventDefault();
         setSaving(true);
         setError('');
-        setSuccess(false);
-
         try {
-            await userApi.updateProfile(displayName);
+            await userApi.updateProfile({ name: displayName });
             await refreshUser();
-            setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
+            saveFeedback.showSaved();
         } catch (err: any) {
             setError(err.message || 'Failed to update profile');
         } finally {
@@ -111,11 +110,6 @@ export default function OrganiserProfilePage() {
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {success && (
-                                <div className="rounded-md bg-green-50 p-3 text-sm text-green-500 dark:bg-green-900/20">
-                                    Profile updated successfully!
-                                </div>
-                            )}
                             {error && (
                                 <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/20">
                                     {error}
@@ -148,10 +142,16 @@ export default function OrganiserProfilePage() {
                                 <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                             </div>
                             <div className="flex gap-3">
-                                <Button type="submit" className="bg-crimson hover:bg-crimson-dark" disabled={saving}>
-                                    <Save className="mr-2 h-4 w-4" />
-                                    {saving ? 'Saving...' : 'Save Changes'}
-                                </Button>
+                                <FeedbackButton
+                                    type="submit"
+                                    className="bg-crimson hover:bg-crimson-dark"
+                                    loading={saving}
+                                    feedback={saveFeedback.feedback}
+                                    defaultLabel="Save Changes"
+                                    loadingLabel="Saving..."
+                                    savedLabel="Saved"
+                                    icon={Save}
+                                />
                                 <Button
                                     type="button"
                                     variant="destructive"

@@ -136,11 +136,11 @@ const AuthNavbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-b border-slate-100 overflow-hidden"
+            className="md:hidden bg-background border-b border-border overflow-hidden"
           >
             <div className="flex flex-col p-6 gap-4">
               {/* User Info */}
-              <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3 pb-4 border-b border-border">
                 <Avatar className="h-10 w-10 border-2 border-crimson">
                   <AvatarFallback className="bg-crimson text-white text-sm font-bold">
                     {user?.name ? getInitials(user.name) : 'U'}
@@ -176,7 +176,7 @@ const AuthNavbar = () => {
                   setIsOpen(false);
                   handleLogout();
                 }}
-                className="w-full py-3 rounded-md bg-crimson text-white font-bold mt-2 flex items-center justify-center gap-2 hover:bg-crimson-dark"
+                className="w-full py-3 rounded-lg bg-crimson text-white font-bold mt-2 flex items-center justify-center gap-2 hover:bg-crimson-dark"
               >
                 <LogOut size={18} />
                 Logout

@@ -130,8 +130,8 @@ export default function FavoritesPage() {
                     {!loading && !error && events.length > 0 && (
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {events.map((event) => (
-                                <Card key={event.id} className="group overflow-hidden border-none shadow-none bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors">
-                                    <div className="aspect-[4/3] relative bg-muted flex items-center justify-center overflow-hidden rounded-2xl mb-3">
+                                <div key={event.id} className="habesha-event-card group bg-white dark:bg-zinc-900/50 cursor-pointer">
+                                    <div className="aspect-[4/3] relative bg-muted flex items-center justify-center overflow-hidden">
                                         {event.image_url ? (
                                             <img
                                                 src={`${API_BASE_URL}${event.image_url}`}
@@ -139,15 +139,15 @@ export default function FavoritesPage() {
                                                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             />
                                         ) : (
-                                            <Calendar className="h-10 w-10 text-muted-foreground/30" />
+                                            <Calendar className="h-10 w-10 text-slate-400" />
                                         )}
                                         <div className="absolute top-2.5 left-2.5">
-                                            <span className="bg-white/95 dark:bg-black/80 backdrop-blur-md text-[10px] font-black px-2.5 py-1 rounded-full text-black dark:text-white border border-zinc-200/50 dark:border-white/10 uppercase tracking-wider shadow-sm">
+                                            <span className="bg-white/95 dark:bg-black/90 backdrop-blur-sm text-[10px] font-bold px-2.5 py-1 rounded-full text-slate-800 dark:text-slate-200 uppercase tracking-wider shadow-sm">
                                                 {event.category}
                                             </span>
                                         </div>
                                         <button
-                                            className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full shadow-sm text-red-500 border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                            className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full shadow-sm text-crimson hover:scale-110 transition-transform"
                                             onClick={() => handleRemoveFavorite(event.id)}
                                             disabled={removingId === event.id}
                                         >
@@ -158,20 +158,20 @@ export default function FavoritesPage() {
                                             )}
                                         </button>
                                     </div>
-                                    <div className="px-1.5 pb-2 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
-                                        <h3 className="text-base font-bold line-clamp-1 mb-1 group-hover:text-crimson transition-colors">{event.title}</h3>
-                                        <div className="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-                                            <div className="flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
+                                    <div className="p-5 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
+                                        <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-crimson transition-colors">{event.title}</h3>
+                                        <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                            <div className="flex items-center gap-1.5">
                                                 <Calendar className="h-3.5 w-3.5 text-crimson" />
                                                 <span>{formatDate(event.date)}</span>
                                             </div>
-                                            <div className="flex items-center gap-1.5 opacity-70">
-                                                <MapPin className="h-3.5 w-3.5" />
+                                            <div className="flex items-center gap-1.5">
+                                                <MapPin className="h-3.5 w-3.5 text-crimson" />
                                                 <span className="line-clamp-1">{event.location_venue || event.location || 'Location TBD'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                </Card>
+                                </div>
                             ))}
                         </div>
                     )}

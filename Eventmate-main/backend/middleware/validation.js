@@ -37,6 +37,34 @@ const userValidation = {
         body('password')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
+        body('role')
+            .optional()
+            .isIn(['Registered User', 'Organizer'])
+            .withMessage('Role must be Registered User or Organizer'),
+        validate
+    ],
+    verify: [
+        body('email')
+            .trim()
+            .isEmail()
+            .withMessage('Valid email is required')
+            .normalizeEmail(),
+        body('code')
+            .trim()
+            .matches(/^\d{6}$/)
+            .withMessage('Verification code must be a 6-digit number'),
+        validate
+    ],
+    resendOtp: [
+        body('email')
+            .trim()
+            .isEmail()
+            .withMessage('Valid email is required')
+            .normalizeEmail(),
+        body('type')
+            .optional()
+            .isIn(['verification', 'reset'])
+            .withMessage('Type must be verification or reset'),
         validate
     ],
     login: [
@@ -56,6 +84,16 @@ const userValidation = {
             .trim()
             .isLength({ min: 2, max: 100 })
             .withMessage('Name must be between 2 and 100 characters'),
+        body('phone')
+            .optional({ nullable: true, checkFalsy: true })
+            .trim()
+            .matches(/^\+?[0-9\s\-().]{7,20}$/)
+            .withMessage('Please enter a valid phone number'),
+        body('bio')
+            .optional({ nullable: true, checkFalsy: true })
+            .trim()
+            .isLength({ max: 500 })
+            .withMessage('Bio cannot exceed 500 characters'),
         validate
     ]
 };

@@ -50,6 +50,17 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Global accessibility contrast overrides */
+  --color-slate-400: var(--tw-slate-400);
+  --color-slate-500: var(--tw-slate-500);
+  --color-slate-600: var(--tw-slate-600);
+  --color-gray-400: var(--tw-gray-400);
+  --color-gray-500: var(--tw-gray-500);
+  --color-gray-600: var(--tw-gray-600);
+  --color-zinc-400: var(--tw-zinc-400);
+  --color-zinc-500: var(--tw-zinc-500);
+  --color-zinc-600: var(--tw-zinc-600);
 }
 
 :root {
@@ -69,7 +80,7 @@
 
   --background: var(--habesha-cream);
   --foreground: var(--habesha-black);
-  --card: rgba(255, 255, 255, 0.92);
+  --card: rgba(255, 255, 255, 0.95);
   --card-foreground: var(--habesha-black);
   --popover: var(--habesha-white);
   --popover-foreground: var(--habesha-black);
@@ -78,7 +89,7 @@
   --secondary: var(--habesha-cream-deep);
   --secondary-foreground: var(--habesha-black);
   --muted: #F0EBE0;
-  --muted-foreground: #5C5348;
+  --muted-foreground: #473E35;
   --accent: color-mix(in srgb, var(--habesha-gold) 18%, var(--habesha-cream));
   --accent-foreground: var(--habesha-green);
   --destructive: var(--habesha-red-bright);
@@ -99,14 +110,25 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--habesha-gold);
 
+  /* Contrast-corrected colors for light mode (WCAG AA Compliant on cream) */
+  --tw-slate-400: #3f4e64;
+  --tw-slate-500: #2c384a;
+  --tw-slate-600: #1b2533;
+  --tw-gray-400: #4b5563;
+  --tw-gray-500: #374151;
+  --tw-gray-600: #1f2937;
+  --tw-zinc-400: #52525b;
+  --tw-zinc-500: #3f3f46;
+  --tw-zinc-600: #27272a;
+
   /* Accent red — CTAs, highlights (backward-compat aliases) */
   --crimson: var(--habesha-red-bright);
   --crimson-dark: var(--habesha-red);
   --crimson-light: #D32F2F;
 
   /* Tilet pattern — visible but readable */
-  --tilet-opacity: 0.11;
-  --tilet-opacity-secondary: 0.045;
+  --tilet-opacity: 0.15;
+  --tilet-opacity-secondary: 0.08;
   --tilet-color: var(--habesha-green);
   --tilet-color-secondary: var(--habesha-gold);
   --tilet-size: 72px;
@@ -115,15 +137,15 @@
 @media (max-width: 640px) {
   :root {
     --tilet-size: 56px;
-    --tilet-opacity: 0.09;
-    --tilet-opacity-secondary: 0.038;
+    --tilet-opacity: 0.12;
+    --tilet-opacity-secondary: 0.06;
   }
 }
 
 @media (min-width: 1024px) {
   :root {
     --tilet-size: 80px;
-    --tilet-opacity: 0.12;
+    --tilet-opacity: 0.18;
   }
 }
 
@@ -171,12 +193,23 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--habesha-gold);
 
+  /* Contrast-corrected colors for dark mode */
+  --tw-slate-400: #94a3b8;
+  --tw-slate-500: #cbd5e1;
+  --tw-slate-600: #e2e8f0;
+  --tw-gray-400: #9ca3af;
+  --tw-gray-500: #d1d5db;
+  --tw-gray-600: #e5e7eb;
+  --tw-zinc-400: #a1a1aa;
+  --tw-zinc-500: #d4d4d8;
+  --tw-zinc-600: #e4e4e7;
+
   --crimson: var(--habesha-red-bright);
   --crimson-dark: var(--habesha-red);
   --crimson-light: #EF5350;
 
-  --tilet-opacity: 0.13;
-  --tilet-opacity-secondary: 0.05;
+  --tilet-opacity: 0.18;
+  --tilet-opacity-secondary: 0.09;
   --tilet-color: var(--habesha-gold);
   --tilet-color-secondary: var(--habesha-green-mid);
 }
@@ -194,14 +227,62 @@
     @apply bg-background text-foreground;
   }
 
-  /* Premium cards with subtle gold accent */
+  /* Premium cards with clean subtle gold accent */
   .habesha-card,
   [data-slot="card"] {
-    border-color: color-mix(in srgb, var(--habesha-gold) 28%, var(--border));
+    border: 1px solid color-mix(in srgb, var(--habesha-gold) 25%, var(--border));
     box-shadow:
-      0 1px 2px color-mix(in srgb, var(--habesha-green) 6%, transparent),
-      0 0 0 1px color-mix(in srgb, var(--habesha-gold) 8%, transparent);
+      0 4px 6px -1px color-mix(in srgb, var(--habesha-green) 5%, transparent),
+      0 2px 4px -1px color-mix(in srgb, var(--habesha-gold) 8%, transparent);
+    position: relative;
+    overflow: hidden;
   }
+}
+
+/* Elegant unified Habeshawi event card design */
+.habesha-event-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--habesha-gold) 25%, var(--border));
+  border-radius: 1rem;
+  box-shadow: 
+    0 4px 20px -2px rgba(13, 74, 44, 0.03), 
+    0 2px 8px -1px rgba(201, 162, 39, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.habesha-event-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--habesha-gold);
+  box-shadow: 
+    0 12px 24px -4px rgba(13, 74, 44, 0.06), 
+    0 4px 12px -2px rgba(201, 162, 39, 0.06);
+}
+
+/* Elegant cultural corner decoration */
+.habesha-event-card::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 36px;
+  height: 36px;
+  background-color: var(--habesha-gold);
+  opacity: 0.12;
+  -webkit-mask-image: url("/habesha-tilet.svg");
+  mask-image: url("/habesha-tilet.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.habesha-event-card:hover::after {
+  opacity: 0.25;
+  transform: scale(1.05);
 }
 
 /* ─── Tilet (ጥለት) background pattern ─────────────────────────────────────
@@ -339,6 +420,19 @@
   rotate: 45deg;
   border: 1px solid var(--habesha-gold);
   background: color-mix(in srgb, var(--habesha-gold) 30%, transparent);
+}
+
+/* Decorative Habesha border with pattern - updated to look clean and single-gold */
+.habesha-tilet-border {
+  border: 2px solid var(--habesha-gold);
+  position: relative;
+}
+
+/* Redefined to be a clean, premium gold stripe instead of tricolor */
+.habesha-stripe {
+  height: 3px;
+  width: 100%;
+  background: var(--habesha-gold);
 }
 
 /* Accent utilities (crimson aliases → Habesha red) */

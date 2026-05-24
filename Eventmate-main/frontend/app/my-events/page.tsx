@@ -87,8 +87,8 @@ export default function MyEventsPage() {
     );
 
     const renderEventCard = (event: any) => (
-        <Card key={event.id} className="group overflow-hidden border-none shadow-none bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-900/50 transition-colors">
-            <div className="aspect-[4/3] relative bg-muted flex items-center justify-center overflow-hidden rounded-2xl mb-3">
+        <div key={event.id} className="habesha-event-card group bg-white dark:bg-zinc-900/50 cursor-pointer">
+            <div className="aspect-[4/3] relative bg-muted flex items-center justify-center overflow-hidden">
                 {event.image_url ? (
                     <img
                         src={`${API_BASE_URL}${event.image_url}`}
@@ -96,38 +96,38 @@ export default function MyEventsPage() {
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                 ) : (
-                    <Calendar className="h-10 w-10 text-muted-foreground/30" />
+                    <Calendar className="h-10 w-10 text-slate-400" />
                 )}
                 <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
-                    <span className={`backdrop-blur-md text-[10px] font-black px-2.5 py-1 rounded-full border border-white/20 uppercase tracking-wider shadow-sm ${getStatus(event.date) === 'upcoming'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-zinc-500 text-white'
+                    <span className={`backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20 uppercase tracking-wider shadow-sm ${getStatus(event.date) === 'upcoming'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-slate-600 text-white'
                         }`}>
                         {getStatus(event.date)}
                     </span>
-                    <span className={`backdrop-blur-md text-[10px] font-black px-2.5 py-1 rounded-full border border-white/20 uppercase tracking-wider shadow-sm ${
+                    <span className={`backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20 uppercase tracking-wider shadow-sm ${
                         event.registration_status === 'Pending' 
-                            ? 'bg-yellow-500 text-white'
-                            : 'bg-blue-500 text-white'
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-blue-600 text-white'
                     }`}>
                         {event.registration_status || 'Registered'}
                     </span>
                 </div>
             </div>
-            <div className="px-1.5 pb-2 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
-                <h3 className="text-base font-bold line-clamp-1 mb-1 group-hover:text-crimson transition-colors">{event.title}</h3>
-                <div className="flex flex-col gap-1 text-[11px] font-medium text-muted-foreground">
-                    <div className="flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
+            <div className="p-5 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
+                <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-crimson transition-colors">{event.title}</h3>
+                <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5 text-crimson" />
                         <span>{formatDate(event.date)} at {event.time}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 opacity-70">
-                        <MapPin className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-crimson" />
                         <span className="line-clamp-1">{event.location_venue || event.location || 'Location TBD'}</span>
                     </div>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 
     return (

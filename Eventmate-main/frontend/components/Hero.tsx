@@ -13,10 +13,10 @@ const Hero = () => {
       <div className="absolute inset-0 -z-10">
         <img 
           src="/hero-image.png" 
-          alt="Vibrant music festival crowd" 
-          className="w-full h-full object-cover brightness-50"
+          alt="Elegant Ethiopian Event" 
+          className="w-full h-full object-cover brightness-[0.45]"
         />
-        <div className="absolute inset-0 backdrop-brightness-75 bg-gradient-to-br from-habesha-green/80 via-black/50 to-habesha-red/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/75" />
       </div>
       
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full">
@@ -28,10 +28,14 @@ const Hero = () => {
         >
           <h1 className="text-5xl md:text-8xl font-extrabold leading-[1.1] mb-6 font-display text-white">
             Where <span className="text-habesha-gold">Vision</span> Meets <br />
-            Celebration.
+            <span className="text-[#E4C76B]">Celebration.</span>
           </h1>
           
-          <p className="text-xl text-white/80 mb-10 max-w-xl leading-relaxed">
+          <div className="habesha-divider mb-8 max-w-md opacity-60">
+            <div className="habesha-divider-icon"></div>
+          </div>
+          
+          <p className="text-xl text-white/90 mb-10 max-w-xl leading-relaxed">
             Curating unforgettable experiences—from soulful concerts and vibrant festivals 
             to insightful workshops and academic gatherings. We blend artistry with precision.
           </p>
@@ -39,7 +43,7 @@ const Hero = () => {
           <div className="flex flex-wrap gap-4">
             <button 
               onClick={() => router.push('/register')}
-              className="px-10 py-5 rounded-md bg-crimson text-white font-bold flex items-center gap-2 shadow-2xl shadow-crimson/30 hover:bg-crimson-dark transition-all transform hover:-translate-y-1 cursor-pointer ring-1 ring-habesha-gold/50"
+              className="px-10 py-5 rounded-md bg-crimson text-white font-bold flex items-center gap-2 shadow-2xl shadow-crimson/30 hover:bg-crimson-dark transition-all transform hover:-translate-y-1 cursor-pointer ring-2 ring-habesha-gold/80"
             >
               Explore Events <ArrowRight size={20} />
             </button>

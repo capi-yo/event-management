@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTheme } from "@/components/theme-provider"
-import { getUser } from "@/lib/api"
+import { getUser, removeUser, removeToken } from "@/lib/api"
 import NotificationBell from "@/components/NotificationBell"
 import {
     Sheet,
@@ -309,10 +309,8 @@ export default function OrganiserLayout({
     const { signOut } = useAuth()
 
     const handleLogout = async () => {
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-        }
+        removeUser();
+        removeToken();
         await signOut();
         router.push('/');
     };

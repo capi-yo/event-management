@@ -975,6 +975,38 @@ router.put('/:id', authenticate, isOrganizer, async (req, res) => {
             values
         );
 
+        const updatedEvent = result.rows[0];
+
+        // Notify all registered users of the update
+        try {
+            const registrationsResult = await db.query(
+                "SELECT DISTINCT user_id FROM registrations WHERE event_id = $1 AND status IN ('RSVPed', 'Confirmed', 'Pending', 'Purchased')",
+                [id]
+            );
+
+            const eventDetails = {
+                title: updatedEvent.title,
+                date: updatedEvent.date,
+                time: updatedEvent.time,
+                venue: updatedEvent.location_venue,
+                city: updatedEvent.city,
+                country: updatedEvent.country,
+                latitude: updatedEvent.location_latitude,
+                longitude: updatedEvent.location_longitude
+            };
+
+            for (const row of registrationsResult.rows) {
+                await createNotification(
+                    row.user_id,
+                    `The event "${updatedEvent.title}" has been updated by the organizer. Please check the new details.`,
+                    eventDetails,
+                    'User'
+                );
+            }
+        } catch (notifyError) {
+            console.error('Failed to send update notifications to registered users:', notifyError);
+        }
+
         // Log event update
         await logger.log({
             userId: req.user.id,

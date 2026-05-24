@@ -127,9 +127,16 @@ export const authApi = {
         }),
 
     verify: (email: string, code: string) =>
-        fetchApi<{ success: boolean; message: string }>('/auth/verify', {
+        fetchApi<{
+            success: boolean;
+            message: string;
+            data?: {
+                user: { id: number; name: string; email: string; role: string };
+                token: string;
+            };
+        }>('/auth/verify', {
             method: 'POST',
-            body: JSON.stringify({ email, code }),
+            body: JSON.stringify({ email: email.trim(), code: code.trim() }),
         }),
 
     getCurrentUser: () =>
@@ -161,6 +168,9 @@ export interface UserProfile {
     name: string;
     email: string;
     role: string;
+    avatar_url?: string | null;
+    phone?: string | null;
+    bio?: string | null;
     created_at: string;
 }
 
@@ -168,10 +178,33 @@ export const userApi = {
     getProfile: () =>
         fetchApi<{ success: boolean; data: { user: UserProfile } }>('/user/profile'),
 
-    updateProfile: (name: string) =>
+    updateProfile: (data: { name?: string; phone?: string; bio?: string }) =>
         fetchApi<{ success: boolean; data: { user: UserProfile } }>('/user/profile', {
             method: 'PUT',
-            body: JSON.stringify({ name }),
+            body: JSON.stringify(data),
+        }),
+
+    uploadAvatar: (file: File): Promise<{ success: boolean; message: string; data: { user: UserProfile } }> => {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const token = getToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        return fetch(`${API_BASE_URL}/user/avatar`, {
+            method: 'POST',
+            headers,
+            body: formData,
+        }).then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Upload failed');
+            return data;
+        });
+    },
+
+    changePassword: (currentPassword: string, newPassword: string) =>
+        fetchApi<{ success: boolean; message: string }>('/user/password', {
+            method: 'PUT',
+            body: JSON.stringify({ currentPassword, newPassword }),
         }),
 };
 
@@ -581,13 +614,13 @@ export const adminApi = {
     },
 
     updateUserRole: (userId: number, role: string) =>
-        fetchApi<{ success: boolean }>(`/admin/users/${userId}/role`, {
+        fetchApi<{ success: boolean }>(`/admin/users/${userId}`, {
             method: 'PATCH',
             body: JSON.stringify({ role }),
         }),
 
     updateUserStatus: (userId: number, status: string) =>
-        fetchApi<{ success: boolean }>(`/admin/users/${userId}/status`, {
+        fetchApi<{ success: boolean }>(`/admin/users/${userId}`, {
             method: 'PATCH',
             body: JSON.stringify({ status }),
         }),

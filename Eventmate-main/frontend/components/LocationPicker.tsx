@@ -53,13 +53,15 @@ export default function LocationPicker({
     };
   }, []);
 
+  const parsedLat = latitude != null && String(latitude) !== "" ? Number(latitude) : null;
+  const parsedLng = longitude != null && String(longitude) !== "" ? Number(longitude) : null;
+  const isValidCoords = parsedLat !== null && parsedLng !== null && !isNaN(parsedLat) && !isNaN(parsedLng);
+
   const [marker, setMarker] = useState<[number, number] | null>(
-    latitude != null && longitude != null ? [latitude, longitude] : null,
+    isValidCoords ? [parsedLat as number, parsedLng as number] : null,
   );
   const [mapCenter, setMapCenter] = useState<[number, number]>(
-    latitude != null && longitude != null
-      ? [latitude, longitude]
-      : DEFAULT_CENTER,
+    isValidCoords ? [parsedLat as number, parsedLng as number] : DEFAULT_CENTER,
   );
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
 
@@ -109,8 +111,11 @@ export default function LocationPicker({
   }, [locationLabel]);
 
   useEffect(() => {
-    if (latitude == null || longitude == null) return;
-    const next: [number, number] = [latitude, longitude];
+    if (latitude == null || longitude == null || String(latitude) === "" || String(longitude) === "") return;
+    const latNum = Number(latitude);
+    const lngNum = Number(longitude);
+    if (isNaN(latNum) || isNaN(lngNum)) return;
+    const next: [number, number] = [latNum, lngNum];
     setMarker(next);
     setMapCenter(next);
     setFlyTo([...next]);
@@ -219,7 +224,7 @@ export default function LocationPicker({
       setSearchError("Select a place from search or click on the map first.");
       return;
     }
-    const label = searchQuery.trim() || confirmedLabel || `${marker[0].toFixed(5)}, ${marker[1].toFixed(5)}`;
+    const label = searchQuery.trim() || confirmedLabel || `${Number(marker[0]).toFixed(5)}, ${Number(marker[1]).toFixed(5)}`;
     setConfirmedLabel(label);
     setShowSuggestions(false);
     setSearchError("");
@@ -370,12 +375,12 @@ export default function LocationPicker({
           <p className="truncate text-gray-600">
             {confirmedLabel ||
               (marker
-                ? `${marker[0].toFixed(5)}, ${marker[1].toFixed(5)}`
+                ? `${Number(marker[0]).toFixed(5)}, ${Number(marker[1]).toFixed(5)}`
                 : "Search or click the map to choose a venue")}
           </p>
           {marker && (
             <p className="text-xs text-gray-500">
-              {marker[0].toFixed(6)}, {marker[1].toFixed(6)}
+              {Number(marker[0]).toFixed(6)}, {Number(marker[1]).toFixed(6)}
             </p>
           )}
         </div>

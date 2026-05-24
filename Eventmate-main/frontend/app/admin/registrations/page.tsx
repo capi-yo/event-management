@@ -45,10 +45,13 @@ import {
     DollarSign,
     Ticket,
     Calendar,
-    Mail
+    Mail,
+    Check
 } from "lucide-react"
 import { adminApi } from '@/lib/api'
 import { useToast } from "@/components/ui/use-toast"
+import { FeedbackButton } from '@/components/FeedbackButton'
+import { useActionFeedbackMap, useButtonFeedback } from '@/hooks/useButtonFeedback'
 
 export default function AdminRegistrationsPage() {
     const { theme } = useTheme()
@@ -64,6 +67,9 @@ export default function AdminRegistrationsPage() {
     const [selectedRegistration, setSelectedRegistration] = useState<any>(null)
     const [viewDialogOpen, setViewDialogOpen] = useState(false)
     const [updating, setUpdating] = useState<number | null>(null)
+    const registrationActionFeedback = useActionFeedbackMap()
+    const dialogApproveFeedback = useButtonFeedback()
+    const dialogRejectFeedback = useButtonFeedback()
 
     const fetchRegistrations = async () => {
         try {
@@ -96,13 +102,24 @@ export default function AdminRegistrationsPage() {
             setUpdating(registrationId)
             const res = await adminApi.updateRegistrationStatus(registrationId, newStatus)
             if (res.success) {
+                if (newStatus === 'Confirmed') {
+                    registrationActionFeedback.triggerConfirmed(registrationId)
+                    if (selectedRegistration?.id === registrationId) {
+                        dialogApproveFeedback.showConfirmed()
+                    }
+                } else {
+                    registrationActionFeedback.triggerSaved(registrationId)
+                    if (selectedRegistration?.id === registrationId) {
+                        dialogRejectFeedback.showSaved()
+                    }
+                }
                 toast({
                     title: "Status Updated",
                     description: `Registration status updated to ${newStatus}`,
                     variant: "success",
                 })
                 fetchRegistrations()
-                setViewDialogOpen(false)
+                setTimeout(() => setViewDialogOpen(false), 1000)
             }
         } catch (err: any) {
             toast({
@@ -375,6 +392,8 @@ export default function AdminRegistrationsPage() {
                                                                     >
                                                                         {updating === reg.id ? (
                                                                             <Loader2 className="h-4 w-4 animate-spin" />
+                                                                        ) : registrationActionFeedback.getFeedback(reg.id) === 'confirmed' ? (
+                                                                            <Check className="h-4 w-4 text-green-600" />
                                                                         ) : (
                                                                             <CheckCircle className="h-4 w-4" />
                                                                         )}
@@ -504,31 +523,27 @@ export default function AdminRegistrationsPage() {
                             {/* Action Buttons for Pending Payments */}
                             {selectedRegistration.status === 'Pending' && (
                                 <div className="flex gap-2 pt-4 border-t border-slate-700">
-                                    <Button
+                                    <FeedbackButton
                                         className="flex-1 bg-green-600 hover:bg-green-700"
                                         onClick={() => handleUpdateStatus(selectedRegistration.id, 'Confirmed')}
-                                        disabled={updating === selectedRegistration.id}
-                                    >
-                                        {updating === selectedRegistration.id ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <CheckCircle className="mr-2 h-4 w-4" />
-                                        )}
-                                        Approve Payment
-                                    </Button>
-                                    <Button
+                                        loading={updating === selectedRegistration.id}
+                                        feedback={dialogApproveFeedback.feedback}
+                                        defaultLabel="Approve Payment"
+                                        loadingLabel="Updating..."
+                                        confirmedLabel="Confirmed"
+                                        icon={CheckCircle}
+                                    />
+                                    <FeedbackButton
                                         variant="destructive"
                                         className="flex-1"
                                         onClick={() => handleUpdateStatus(selectedRegistration.id, 'Cancelled')}
-                                        disabled={updating === selectedRegistration.id}
-                                    >
-                                        {updating === selectedRegistration.id ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <XCircle className="mr-2 h-4 w-4" />
-                                        )}
-                                        Reject Payment
-                                    </Button>
+                                        loading={updating === selectedRegistration.id}
+                                        feedback={dialogRejectFeedback.feedback}
+                                        defaultLabel="Reject Payment"
+                                        loadingLabel="Updating..."
+                                        savedLabel="Saved"
+                                        icon={XCircle}
+                                    />
                                 </div>
                             )}
                         </div>

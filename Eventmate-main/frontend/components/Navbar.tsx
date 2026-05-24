@@ -46,8 +46,10 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || isAuthPage ? 'glass-nav py-3' : isLandingPage ? 'bg-transparent py-5' : 'glass-nav py-3'}`}>
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+    <>
+      <div className="fixed top-0 left-0 right-0 z-[60] habesha-stripe"></div>
+      <nav className={`fixed w-full mt-[4px] z-50 transition-all duration-300 ${scrolled || isAuthPage ? 'glass-nav py-3' : isLandingPage ? 'bg-transparent py-5' : 'glass-nav py-3'}`}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg ring-1 ring-habesha-gold/40">
             <Calendar className="text-white w-6 h-6" />
@@ -80,7 +82,7 @@ const Navbar = () => {
             )
           ))}
           <Link href='/register'>
-            <button className={`px-5 py-2 rounded-none border-2 font-semibold text-sm transition-all duration-300 cursor-pointer ${scrolled || !isLandingPage ? 'border-crimson text-crimson hover:bg-crimson hover:text-white' : 'border-white text-white hover:bg-white hover:text-crimson'}`}>
+            <button className={`px-5 py-2 rounded-lg border-2 font-semibold text-sm transition-all duration-300 cursor-pointer ${scrolled || !isLandingPage ? 'border-crimson text-crimson hover:bg-crimson hover:text-white' : 'border-white text-white hover:bg-white hover:text-crimson'}`}>
               Sign Up
             </button>
           </Link>
@@ -102,7 +104,7 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-b border-slate-100 overflow-hidden"
+            className="md:hidden bg-background border-b border-border overflow-hidden"
           >
             <div className="flex flex-col p-6 gap-4">
               {navLinks.map((link) => (
@@ -127,7 +129,7 @@ const Navbar = () => {
                 )
               ))}
               <Link href='/register'>
-                <button className="w-full py-3 rounded-none bg-crimson text-white font-bold mt-2 cursor-pointer">
+                <button className="w-full py-3 rounded-lg bg-crimson text-white font-bold mt-2 cursor-pointer">
                   Sign Up
                 </button>
               </Link>
@@ -136,6 +138,7 @@ const Navbar = () => {
         )}
       </AnimatePresence>
     </nav>
+    </>
   );
 };
 

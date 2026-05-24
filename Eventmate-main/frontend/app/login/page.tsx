@@ -21,6 +21,7 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [fieldsReady, setFieldsReady] = useState(false);
 
     const getRedirectUrl = (role: string): string => {
         switch (role) {
@@ -33,11 +34,18 @@ export default function LoginPage() {
         }
     };
 
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
 
-        const emailError = validateEmail(email);
+        // Read from the form DOM so browser autofill cannot desync from React state
+        const form = e.currentTarget;
+        const emailInput = form.elements.namedItem('login-email') as HTMLInputElement;
+        const passwordInput = form.elements.namedItem('login-password') as HTMLInputElement;
+        const submittedEmail = (emailInput?.value ?? email).trim();
+        const submittedPassword = passwordInput?.value ?? password;
+
+        const emailError = validateEmail(submittedEmail);
         if (emailError) {
             setError(emailError);
             return;
@@ -46,7 +54,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await signIn(email, password);
+            await signIn(submittedEmail, submittedPassword);
             // Get user from localStorage to determine redirect
             const user = getUser();
             if (user) {
@@ -57,7 +65,9 @@ export default function LoginPage() {
             }
         } catch (err: any) {
             if (err.needsVerification) {
-                router.push(`/verify?email=${encodeURIComponent(email)}`);
+                router.push(
+                    `/verify?email=${encodeURIComponent(submittedEmail)}&message=${encodeURIComponent('Please verify your email before signing in.')}`
+                );
             } else {
                 setError(err.message || 'Invalid email or password');
             }
@@ -70,7 +80,7 @@ export default function LoginPage() {
         <div className="flex min-h-screen flex-col">
             <Navbar />
             <main className="flex-1 flex items-center justify-center habesha-surface px-4 py-12">
-                <Card className="w-full max-w-md border-t-2 border-t-habesha-gold/50">
+                <Card className="w-full max-w-md">
                     <CardHeader className="space-y-1 relative pt-8">
                         <Link href="/" className="absolute left-4 top-4 text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center h-8 w-8 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800" title="Return Home">
                             <ArrowLeft className="h-4 w-4" />
@@ -80,7 +90,7 @@ export default function LoginPage() {
                             Enter your email and password to sign in to your account
                         </CardDescription>
                     </CardHeader>
-                    <form onSubmit={handleSubmit} autoComplete="on" method="POST" action="/login">
+                    <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                         <CardContent className="space-y-4">
                             {error && (
                                 <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/20">
@@ -92,13 +102,21 @@ export default function LoginPage() {
                                     Email
                                 </label>
                                 <Input
-                                    id="email"
-                                    name="email"
+                                    id="login-email"
+                                    name="login-email"
                                     type="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    autoComplete="username"
+                                    onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+                                    onFocus={() => setFieldsReady(true)}
+                                    readOnly={!fieldsReady}
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
+                                    data-lpignore="true"
+                                    data-1p-ignore
                                     required
                                 />
                             </div>
@@ -108,13 +126,18 @@ export default function LoginPage() {
                                 </label>
                                 <div className="relative">
                                     <Input
-                                        id="password"
-                                        name="password"
+                                        id="login-password"
+                                        name="login-password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Enter your password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        autoComplete="current-password"
+                                        onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+                                        onFocus={() => setFieldsReady(true)}
+                                        readOnly={!fieldsReady}
+                                        autoComplete="off"
+                                        data-lpignore="true"
+                                        data-1p-ignore
                                         required
                                     />
                                     <button

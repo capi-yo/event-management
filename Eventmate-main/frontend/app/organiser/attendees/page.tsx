@@ -43,6 +43,7 @@ import {
     Eye,
     MoreHorizontal,
     CheckCircle,
+    Check,
     XCircle,
     Clock,
     Calendar,
@@ -52,6 +53,7 @@ import {
 } from "lucide-react"
 import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
+import { useActionFeedbackMap } from '@/hooks/useButtonFeedback'
 
 export default function OrganiserAttendeesPage() {
     const { user, loading: authLoading } = useAuth()
@@ -66,6 +68,7 @@ export default function OrganiserAttendeesPage() {
     const [error, setError] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
+    const attendeeActionFeedback = useActionFeedbackMap()
     const [stats, setStats] = useState({
         confirmed: 0,
         checkedIn: 0,
@@ -427,6 +430,7 @@ export default function OrganiserAttendeesPage() {
                                                                         try {
                                                                             // Confirmed means the payment is approved
                                                                             await eventsApi.updateRegistrationStatus(attendee.id, 'Confirmed')
+                                                                            attendeeActionFeedback.triggerConfirmed(attendee.id)
                                                                             toast({ title: "Payment Approved", description: "Attendee registration has been confirmed." })
                                                                             // Refresh data
                                                                             const regRes = await eventsApi.getOrganizerRegistrations({
@@ -441,7 +445,11 @@ export default function OrganiserAttendeesPage() {
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <CheckCircle className="h-4 w-4" />
+                                                                    {attendeeActionFeedback.getFeedback(attendee.id) === 'confirmed' ? (
+                                                                        <Check className="h-4 w-4 text-green-600" />
+                                                                    ) : (
+                                                                        <CheckCircle className="h-4 w-4" />
+                                                                    )}
                                                                 </Button>
                                                             </TooltipTrigger>
                                                             <TooltipContent>Approve Payment</TooltipContent>

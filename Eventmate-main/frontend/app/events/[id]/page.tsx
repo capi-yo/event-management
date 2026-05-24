@@ -181,7 +181,7 @@ export default function EventDetailsPage() {
                             </section>
 
                             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Card className="border-none bg-white dark:bg-zinc-900/50 shadow-sm rounded-2xl p-6">
+                                <Card className="habesha-card border-none bg-white dark:bg-zinc-900/50 rounded-2xl p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
                                             <Calendar className="h-6 w-6 text-crimson" />
@@ -200,7 +200,7 @@ export default function EventDetailsPage() {
                                         </div>
                                     </div>
                                 </Card>
-                                <Card className="border-none bg-white dark:bg-zinc-900/50 shadow-sm rounded-2xl p-6">
+                                <Card className="habesha-card border-none bg-white dark:bg-zinc-900/50 rounded-2xl p-6">
                                     <div className="flex items-start gap-4">
                                         <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
                                             <MapPin className="h-6 w-6 text-crimson" />
@@ -223,6 +223,9 @@ export default function EventDetailsPage() {
                             {/* Location Map */}
                             {event.location_latitude && event.location_longitude && (
                                 <section>
+                                    <div className="habesha-divider my-10 opacity-40">
+                                        <div className="habesha-divider-icon"></div>
+                                    </div>
                                     <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
                                         <MapPin className="h-6 w-6 text-crimson" /> Event Location
                                     </h2>
@@ -238,6 +241,9 @@ export default function EventDetailsPage() {
                             )}
 
                             <section>
+                                <div className="habesha-divider my-10 opacity-40">
+                                    <div className="habesha-divider-icon"></div>
+                                </div>
                                 <h2 className="text-2xl font-black mb-6">Organizer Details</h2>
                                 <div className="flex items-center gap-4 bg-white dark:bg-zinc-900/50 p-6 rounded-2xl">
                                     <div className="h-12 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-zinc-500">
@@ -253,7 +259,7 @@ export default function EventDetailsPage() {
 
                         {/* Sidebar / RSVP Widget */}
                         <div className="lg:col-span-1">
-                            <Card className="sticky top-24 border-none shadow-2xl rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
+                            <Card className="habesha-card sticky top-24 border-none shadow-2xl rounded-3xl overflow-hidden bg-white dark:bg-zinc-900">
                                 <div className="bg-crimson p-6 text-white text-center">
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-2">Registration</p>
                                     <h3 className="text-2xl font-black">
