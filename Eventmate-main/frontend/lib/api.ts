@@ -1,5 +1,16 @@
-// API base URL - configure this via NEXT_PUBLIC_API_URL environment variable in production
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// In the browser, use the Next.js /api proxy (see next.config.ts) unless overridden.
+// On the server, call the backend directly.
+function resolveApiBaseUrl(): string {
+    if (process.env.NEXT_PUBLIC_API_URL) {
+        return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined') {
+        return '/api';
+    }
+    return 'http://localhost:3001';
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 // Helper to get the auth token from localStorage
 function getToken(): string | null {
@@ -54,10 +65,24 @@ async function fetchApi<T>(
         (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
+        });
+    } catch (error) {
+        const isNetworkError =
+            error instanceof TypeError &&
+            (error.message === 'Failed to fetch' || error.message.includes('NetworkError'));
+
+        if (isNetworkError) {
+            throw new Error(
+                'Cannot reach the EventMate API. Start the backend with: cd backend && npm run dev'
+            );
+        }
+        throw error;
+    }
 
     // Handle 401 - Unauthorized
     if (response.status === 401) {
@@ -234,6 +259,9 @@ export interface Event {
     min_price?: number;
     discount_type?: string;
     discount_value?: number;
+    original_price?: number;
+    discount_percentage?: number;
+    discounted_price?: number;
 }
 
 export interface EventsResponse {
@@ -379,7 +407,7 @@ export const eventsApi = {
         );
     },
 
-    updateTicketCategory: (ticketId: number, data: { name: string; price: string; capacity: string; discount_type?: string; discount_value?: string }) =>
+    updateTicketCategory: (ticketId: number, data: { name: string; price: string; capacity: string; discount_type?: string; discount_value?: string; discount_percentage?: string }) =>
         fetchApi<{ success: boolean; message: string }>(`/events/ticket-categories/${ticketId}`, {
             method: 'PUT',
             body: JSON.stringify(data),
@@ -476,6 +504,12 @@ export const publicApi = {
                 }
             }
         }>('/public/stats'),
+
+    sendContactMessage: (data: { name: string; email: string; subject: string; message: string }) =>
+        fetchApi<{ success: boolean; message: string }>('/public/contact', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
 };
 
 // ============ FAVORITES API ============

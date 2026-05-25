@@ -70,16 +70,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const unread = incoming.filter((n) => !n.is_read);
     const fresh = unread.filter((n) => !knownIdsRef.current.has(n.id));
 
-    fresh.forEach((notification) => {
-      // 1. Show Toast
-      toast({
-        title: "New Notification",
-        description: notification.message,
-        duration: 5000,
-      });
+    if (fresh.length === 0) return;
 
-      // 2. Show Desktop Push Notification
-      showPushNotification(notification.message);
+    // Defer toasts so we never update Toaster during another component's render/setState
+    queueMicrotask(() => {
+      fresh.forEach((notification) => {
+        toast({
+          title: "New Notification",
+          description: notification.message,
+          duration: 5000,
+        });
+        showPushNotification(notification.message);
+      });
     });
   }, [showPushNotification]);
 
@@ -183,25 +185,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     socket.on("notification", (newNotif: Notification) => {
       console.log("Real-time notification received:", newNotif);
 
+      if (knownIdsRef.current.has(newNotif.id)) return;
+      knownIdsRef.current.add(newNotif.id);
+
       setNotifications((prev) => {
-        // Prevent duplicate real-time notifications
         if (prev.some((n) => n.id === newNotif.id)) return prev;
-        
-        const updated = [newNotif, ...prev];
-        setUnreadCount(updated.filter((n) => !n.is_read).length);
-        knownIdsRef.current.add(newNotif.id);
-        
-        // Show Toast
+        return [newNotif, ...prev];
+      });
+
+      if (!newNotif.is_read) {
+        setUnreadCount((count) => count + 1);
+      }
+
+      queueMicrotask(() => {
         toast({
           title: "New Notification",
           description: newNotif.message,
           duration: 5000,
         });
-
-        // Show Push Notification
         showPushNotification(newNotif.message);
-
-        return updated;
       });
     });
 

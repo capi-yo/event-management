@@ -446,7 +446,7 @@ export default function OrganiserAttendeesPage() {
                                                                     }}
                                                                 >
                                                                     {attendeeActionFeedback.getFeedback(attendee.id) === 'confirmed' ? (
-                                                                        <Check className="h-4 w-4 text-green-600" />
+                                                                        <Check className="h-4 w-4 text-crimson" />
                                                                     ) : (
                                                                         <CheckCircle className="h-4 w-4" />
                                                                     )}

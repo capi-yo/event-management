@@ -18,6 +18,7 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import { ThemeToggle } from '@/components/ThemeToggle'
 import {
     LayoutDashboard,
     Calendar,
@@ -30,8 +31,6 @@ import {
     Activity,
     Search,
     Menu,
-    Moon,
-    Sun,
     Shield,
     History,
     Ticket,
@@ -78,7 +77,7 @@ function NavItem({ href, label, icon: Icon, isActive, onClick }: { href: string;
 // Mobile Sidebar
 function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) {
     const pathname = usePathname()
-    const { theme, toggleTheme } = useTheme()
+    const { theme } = useTheme()
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
@@ -128,24 +127,7 @@ function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose
 
                     {/* Theme Toggle */}
                     <div className="p-4 border-b">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleTheme}
-                            className="w-full flex items-center justify-center gap-2"
-                        >
-                            {theme === "dark" ? (
-                                <>
-                                    <Sun className="w-4 h-4" />
-                                    <span>Light Mode</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Moon className="w-4 h-4" />
-                                    <span>Dark Mode</span>
-                                </>
-                            )}
-                        </Button>
+                        <ThemeToggle showLabel />
                     </div>
 
                     {/* User Section */}
@@ -164,7 +146,7 @@ function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose
                         <Button
                             variant="outline"
                             size="sm"
-                            className="w-full flex items-center justify-center gap-2 text-crimson border-crimson hover:bg-crimson/10 hover:text-crimson-dark"
+                            className="w-full flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                             onClick={onLogout}
                         >
                             <LogOut className="w-4 h-4" />
@@ -180,7 +162,7 @@ function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose
 // Desktop Sidebar
 function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
     const pathname = usePathname()
-    const { theme, toggleTheme } = useTheme()
+    const { theme } = useTheme()
 
     return (
         <aside className="fixed top-0 left-0 z-40 h-screen w-64 bg-background border-r shadow-sm">
@@ -228,24 +210,7 @@ function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
 
                 {/* Theme Toggle */}
                 <div className="p-4 bg-muted">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleTheme}
-                        className="w-full flex items-center justify-center gap-2"
-                    >
-                        {theme === "dark" ? (
-                            <>
-                                <Sun className="w-4 h-4" />
-                                <span>Light Mode</span>
-                            </>
-                        ) : (
-                            <>
-                                <Moon className="w-4 h-4" />
-                                <span>Dark Mode</span>
-                            </>
-                        )}
-                    </Button>
+                    <ThemeToggle showLabel />
                 </div>
 
                 {/* User Section */}
@@ -264,7 +229,7 @@ function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="w-full flex items-center justify-center gap-2 text-crimson border-crimson hover:bg-crimson/10 hover:text-crimson-dark"
+                        className="w-full flex items-center justify-center gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                         onClick={onLogout}
                     >
                         <LogOut className="w-4 h-4" />

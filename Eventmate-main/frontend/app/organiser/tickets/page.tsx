@@ -40,6 +40,11 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import PriceDisplay from "@/components/PriceDisplay"
+import {
+    discountFieldsFromPercentage,
+    validateDiscountPercentage,
+} from "@/lib/pricing"
 import {
     Ticket,
     Search,
@@ -53,7 +58,8 @@ import {
     XCircle,
     Loader2,
     Edit,
-    Trash2
+    Trash2,
+    AlertCircle,
 } from "lucide-react"
 import { useAuth } from '@/components/AuthContext'
 import { eventsApi } from '@/lib/api'
@@ -78,7 +84,8 @@ export default function OrganiserTicketsPage() {
     const [deleting, setDeleting] = useState(false)
     const [saving, setSaving] = useState(false)
     const saveEditFeedback = useButtonFeedback()
-    const [editForm, setEditForm] = useState({ name: '', price: '', capacity: '' })
+    const [editForm, setEditForm] = useState({ name: '', price: '', capacity: '', discountPercentage: '0' })
+    const [editDiscountError, setEditDiscountError] = useState<string | null>(null)
     const { toast } = useToast()
 
     const fetchTickets = async () => {
@@ -103,20 +110,41 @@ export default function OrganiserTicketsPage() {
 
     const handleEditTicket = (ticket: any) => {
         setSelectedTicket(ticket)
+        const pct =
+            ticket.discount_type === 'percentage'
+                ? String(ticket.discount_value ?? ticket.discount_percentage ?? 0)
+                : '0'
         setEditForm({
             name: ticket.type,
             price: ticket.price.toString(),
-            capacity: ticket.capacity?.toString() || '0'
+            capacity: ticket.capacity?.toString() || '0',
+            discountPercentage: pct,
         })
+        setEditDiscountError(null)
         setEditDialogOpen(true)
     }
 
     const handleSaveEdit = async () => {
         if (!selectedTicket) return
 
+        const discountErr = validateDiscountPercentage(editForm.discountPercentage)
+        if (discountErr) {
+            setEditDiscountError(discountErr)
+            return
+        }
+
+        const discount = discountFieldsFromPercentage(editForm.discountPercentage)
+
         try {
             setSaving(true)
-            await eventsApi.updateTicketCategory(selectedTicket.id, editForm)
+            await eventsApi.updateTicketCategory(selectedTicket.id, {
+                name: editForm.name,
+                price: editForm.price,
+                capacity: editForm.capacity,
+                discount_percentage: String(discount.discount_value),
+                discount_type: discount.discount_type,
+                discount_value: String(discount.discount_value),
+            })
             
             toast({
                 title: "Ticket Updated",
@@ -456,7 +484,14 @@ export default function OrganiserTicketsPage() {
                                     <TableCell>
                                         <Badge variant="outline" className={theme === "dark" ? "border-slate-700 text-slate-300" : ""}>{ticket.type}</Badge>
                                     </TableCell>
-                                    <TableCell className={theme === "dark" ? "text-slate-300" : ""}>{formatCurrency(ticket.price)}</TableCell>
+                                    <TableCell>
+                                        <PriceDisplay
+                                            price={ticket.price}
+                                            discountType={ticket.discount_type}
+                                            discountValue={ticket.discount_value ?? ticket.discount_percentage}
+                                            size="sm"
+                                        />
+                                    </TableCell>
                                     <TableCell className={theme === "dark" ? "text-slate-300" : ""}>{ticket.sold}</TableCell>
                                     <TableCell className={theme === "dark" ? "text-slate-300" : ""}>{formatCurrency(ticket.revenue)}</TableCell>
                                     <TableCell>
@@ -557,7 +592,12 @@ export default function OrganiserTicketsPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className={`text-sm font-medium ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Price</p>
-                                    <p className={`text-lg font-bold ${theme === "dark" ? "text-slate-200" : ""}`}>{formatCurrency(selectedTicket.price)}</p>
+                                    <PriceDisplay
+                                        price={selectedTicket.price}
+                                        discountType={selectedTicket.discount_type}
+                                        discountValue={selectedTicket.discount_value ?? selectedTicket.discount_percentage}
+                                        size="md"
+                                    />
                                 </div>
                                 <div>
                                     <p className={`text-sm font-medium ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Tickets Sold</p>
@@ -616,6 +656,42 @@ export default function OrganiserTicketsPage() {
                                 />
                             </div>
                             <div>
+                                <Label htmlFor="ticket-discount" className={theme === "dark" ? "text-slate-300" : ""}>Discount Percentage (%)</Label>
+                                <Input
+                                    id="ticket-discount"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={editForm.discountPercentage}
+                                    onChange={(e) => {
+                                        setEditForm({ ...editForm, discountPercentage: e.target.value })
+                                        setEditDiscountError(validateDiscountPercentage(e.target.value))
+                                    }}
+                                    className={theme === "dark" ? "bg-slate-800 border-slate-700" : ""}
+                                    placeholder="0"
+                                />
+                                {editDiscountError && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        {editDiscountError}
+                                    </p>
+                                )}
+                            </div>
+                            {parseFloat(editForm.price) > 0 && (
+                                <div className={`p-3 rounded-lg flex items-center justify-between gap-4 ${theme === "dark" ? "bg-slate-800" : "bg-muted"}`}>
+                                    <p className={`text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>
+                                        Price preview
+                                    </p>
+                                    <PriceDisplay
+                                        price={editForm.price}
+                                        discountType={discountFieldsFromPercentage(editForm.discountPercentage).discount_type}
+                                        discountValue={discountFieldsFromPercentage(editForm.discountPercentage).discount_value}
+                                        size="sm"
+                                    />
+                                </div>
+                            )}
+                            <div>
                                 <Label htmlFor="ticket-capacity" className={theme === "dark" ? "text-slate-300" : ""}>Capacity</Label>
                                 <Input
                                     id="ticket-capacity"
@@ -648,7 +724,7 @@ export default function OrganiserTicketsPage() {
                         </Button>
                         <FeedbackButton
                             onClick={handleSaveEdit}
-                            disabled={!editForm.name || !editForm.price}
+                            disabled={!editForm.name || !editForm.price || !!editDiscountError}
                             loading={saving}
                             feedback={saveEditFeedback.feedback}
                             defaultLabel="Save Changes"

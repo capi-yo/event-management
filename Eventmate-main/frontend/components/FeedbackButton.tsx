@@ -45,7 +45,8 @@ export function FeedbackButton({
             {...props}
             disabled={disabled || loading || isSuccess}
             className={cn(
-                isSuccess && 'bg-green-600 hover:bg-green-600 text-white border-green-600',
+                isSuccess &&
+                    'bg-primary hover:bg-primary/90 text-primary-foreground border-primary ring-1 ring-habesha-gold/30',
                 className
             )}
         >

@@ -59,6 +59,7 @@ import { useButtonFeedback } from '@/hooks/useButtonFeedback'
 import { useToast } from '@/components/ui/use-toast'
 import LocationPicker from '@/components/LocationPicker'
 import LocationAutocomplete from '@/components/LocationAutocomplete'
+import PriceDisplay from '@/components/PriceDisplay'
 
 export default function OrganiserEventsPage() {
     const { theme } = useTheme()
@@ -192,7 +193,7 @@ export default function OrganiserEventsPage() {
                     <p className={theme === "dark" ? "text-slate-400" : "text-muted-foreground"}>Manage and track your events</p>
                 </div>
                 <Link href="/organiser/create">
-                    <Button className={theme === "dark" ? "bg-primary" : ""}>
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                         <Plus className="h-4 w-4 mr-2" />
                         Create Event
                     </Button>
@@ -295,7 +296,7 @@ export default function OrganiserEventsPage() {
                         <h2 className={`text-xl font-semibold mb-2 ${theme === "dark" ? "text-slate-100" : ""}`}>No events yet</h2>
                         <p className={`mb-4 ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Create your first event to get started</p>
                         <Link href="/organiser/create">
-                            <Button className="bg-crimson hover:bg-crimson-dark">
+                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Event
                             </Button>
@@ -456,6 +457,17 @@ export default function OrganiserEventsPage() {
                                         {selectedEvent.status}
                                     </Badge>
                                 </div>
+                                {selectedEvent.is_paid && selectedEvent.min_price != null && (
+                                    <div>
+                                        <p className={`text-sm font-medium ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}>Starting Price</p>
+                                        <PriceDisplay
+                                            price={selectedEvent.min_price}
+                                            discountType={selectedEvent.discount_type}
+                                            discountValue={selectedEvent.discount_value}
+                                            size="sm"
+                                        />
+                                    </div>
+                                )}
                             </div>
                             {selectedEvent.description && (
                                 <div>
@@ -643,7 +655,7 @@ export default function OrganiserEventsPage() {
                                     Cancel
                                 </Button>
                                 <FeedbackButton
-                                    className="bg-crimson hover:bg-crimson-dark"
+                                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                                     loading={editSaving}
                                     feedback={saveEventFeedback.feedback}
                                     defaultLabel="Save Changes"

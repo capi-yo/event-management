@@ -183,6 +183,16 @@ const eventValidation = {
             .optional()
             .isInt({ min: 0 })
             .withMessage('Ticket capacity must be a positive integer'),
+        body('ticket_categories.*.discount_percentage')
+            .if(body('ticket_categories').exists())
+            .optional()
+            .isFloat({ min: 0, max: 100 })
+            .withMessage('Discount percentage must be between 0 and 100'),
+        body('ticket_categories.*.discount_value')
+            .if(body('ticket_categories').exists())
+            .optional()
+            .isFloat({ min: 0, max: 100 })
+            .withMessage('Discount value must be between 0 and 100'),
         validate
     ],
     update: [

@@ -393,7 +393,7 @@ export default function AdminRegistrationsPage() {
                                                                         {updating === reg.id ? (
                                                                             <Loader2 className="h-4 w-4 animate-spin" />
                                                                         ) : registrationActionFeedback.getFeedback(reg.id) === 'confirmed' ? (
-                                                                            <Check className="h-4 w-4 text-green-600" />
+                                                                            <Check className="h-4 w-4 text-crimson" />
                                                                         ) : (
                                                                             <CheckCircle className="h-4 w-4" />
                                                                         )}
@@ -524,7 +524,7 @@ export default function AdminRegistrationsPage() {
                             {selectedRegistration.status === 'Pending' && (
                                 <div className="flex gap-2 pt-4 border-t border-slate-700">
                                     <FeedbackButton
-                                        className="flex-1 bg-green-600 hover:bg-green-700"
+                                        className="flex-1 bg-crimson hover:bg-crimson-dark"
                                         onClick={() => handleUpdateStatus(selectedRegistration.id, 'Confirmed')}
                                         loading={updating === selectedRegistration.id}
                                         feedback={dialogApproveFeedback.feedback}

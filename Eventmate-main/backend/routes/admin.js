@@ -81,7 +81,23 @@ router.get('/events', async (req, res) => {
         values.push(limit, offset);
 
         const result = await db.query(
-            'SELECT e.*, u.name as organizer_name, u.email as organizer_email, (SELECT COUNT(*) FROM registrations WHERE event_id = e.id) as registered_count FROM events e JOIN users u ON e.organizer_id = u.id ' + whereClause + ' ORDER BY e.created_at DESC LIMIT $' + paramCount + ' OFFSET $' + (paramCount + 1),
+            `SELECT e.*, u.name as organizer_name, u.email as organizer_email,
+                    (SELECT COUNT(*) FROM registrations WHERE event_id = e.id) as registered_count,
+                    tc.price as min_price,
+                    tc.discount_type as discount_type,
+                    tc.discount_value as discount_value
+             FROM events e
+             JOIN users u ON e.organizer_id = u.id
+             LEFT JOIN LATERAL (
+                 SELECT price, discount_type, discount_value
+                 FROM ticket_categories
+                 WHERE event_id = e.id
+                 ORDER BY price ASC
+                 LIMIT 1
+             ) tc ON true
+             ${whereClause}
+             ORDER BY e.created_at DESC
+             LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
             values
         );
 

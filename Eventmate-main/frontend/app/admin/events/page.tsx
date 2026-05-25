@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import { adminApi } from '@/lib/api'
 import { useActionFeedbackMap } from '@/hooks/useButtonFeedback'
+import PriceDisplay from '@/components/PriceDisplay'
 
 export default function AdminEventsPage() {
     const { theme } = useTheme()
@@ -340,7 +341,7 @@ export default function AdminEventsPage() {
                                                                 title="Approve Event"
                                                             >
                                                                 {eventActionFeedback.getFeedback(`${event.id}-Approved`) === 'confirmed' ? (
-                                                                    <Check className="h-4 w-4 text-green-600" />
+                                                                    <Check className="h-4 w-4 text-crimson" />
                                                                 ) : (
                                                                     <CheckCircle className="h-4 w-4" />
                                                                 )}
@@ -353,7 +354,7 @@ export default function AdminEventsPage() {
                                                                 title="Reject Event"
                                                             >
                                                                 {eventActionFeedback.getFeedback(`${event.id}-Rejected`) === 'confirmed' ? (
-                                                                    <Check className="h-4 w-4 text-green-600" />
+                                                                    <Check className="h-4 w-4 text-crimson" />
                                                                 ) : (
                                                                     <XCircle className="h-4 w-4" />
                                                                 )}
@@ -455,6 +456,17 @@ export default function AdminEventsPage() {
                                     <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Registered</p>
                                     <p className="font-medium">{selectedEvent.registered_count || 0} / {selectedEvent.capacity || '∞'}</p>
                                 </div>
+                                {selectedEvent.is_paid && selectedEvent.min_price != null && (
+                                    <div className="col-span-2">
+                                        <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Ticket Price (from)</p>
+                                        <PriceDisplay
+                                            price={selectedEvent.min_price}
+                                            discountType={selectedEvent.discount_type}
+                                            discountValue={selectedEvent.discount_value}
+                                            size="sm"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

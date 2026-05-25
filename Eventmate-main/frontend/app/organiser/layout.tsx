@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTheme } from "@/components/theme-provider"
 import { getUser, removeUser, removeToken } from "@/lib/api"
 import NotificationBell from "@/components/NotificationBell"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import {
     Sheet,
     SheetContent,
@@ -30,8 +31,6 @@ import {
     Activity,
     Search,
     Menu,
-    Moon,
-    Sun,
     PanelLeft,
 } from "lucide-react"
 
@@ -83,7 +82,7 @@ function NavItem({ href, label, icon: Icon, isActive, badge, onClick }: { href: 
 // Mobile Sidebar
 function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) {
     const pathname = usePathname()
-    const { theme, toggleTheme } = useTheme()
+    const { theme } = useTheme()
     const { user } = useAuth()
 
     return (
@@ -135,24 +134,7 @@ function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose
 
                     {/* Theme Toggle */}
                     <div className="p-4 border-b">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleTheme}
-                            className="w-full flex items-center justify-center gap-2"
-                        >
-                            {theme === "dark" ? (
-                                <>
-                                    <Sun className="w-4 h-4" />
-                                    <span>Light Mode</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Moon className="w-4 h-4" />
-                                    <span>Dark Mode</span>
-                                </>
-                            )}
-                        </Button>
+                        <ThemeToggle showLabel />
                     </div>
 
                     {/* User Section */}
@@ -194,7 +176,7 @@ function MobileSidebar({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose
 // Desktop Sidebar
 function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
     const pathname = usePathname()
-    const { theme, toggleTheme } = useTheme()
+    const { theme } = useTheme()
     const { user } = useAuth()
 
     return (
@@ -244,24 +226,7 @@ function DesktopSidebar({ onLogout }: { onLogout: () => void }) {
 
                 {/* Theme Toggle */}
                 <div className="p-4 bg-muted">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleTheme}
-                        className="w-full flex items-center justify-center gap-2"
-                    >
-                        {theme === "dark" ? (
-                            <>
-                                <Sun className="w-4 h-4" />
-                                <span>Light Mode</span>
-                            </>
-                        ) : (
-                            <>
-                                <Moon className="w-4 h-4" />
-                                <span>Dark Mode</span>
-                            </>
-                        )}
-                    </Button>
+                    <ThemeToggle showLabel />
                 </div>
 
                 {/* User Section */}

@@ -50,11 +50,14 @@ CREATE TABLE IF NOT EXISTS ticket_categories (
     id SERIAL PRIMARY KEY,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
+    -- original_price: stored as price
     price DECIMAL(10, 2) DEFAULT 0.00,
     capacity INTEGER DEFAULT 0,
     quantity_sold INTEGER DEFAULT 0,
+    -- discount_percentage: stored as discount_value when discount_type = 'percentage' (0 = no discount)
     discount_type VARCHAR(20) DEFAULT 'none' CHECK (discount_type IN ('none', 'percentage', 'fixed')),
     discount_value DECIMAL(10, 2) DEFAULT 0.00,
+    -- discounted_price: computed at purchase/display time from price and discount fields
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

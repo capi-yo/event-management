@@ -351,12 +351,12 @@
 }
 
 .habesha-footer {
-  background: #0d4a2c;
+  background: #1a1a1a;
   border-top: 2px solid color-mix(in srgb, var(--habesha-gold) 35%, transparent);
 }
 
 .dark .habesha-footer {
-  background: #0a2818;
+  background: #0a0a0a;
 }
 
 /* Gradients & navigation */

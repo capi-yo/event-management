@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Save, LogOut, Camera, Phone, FileText, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Save, LogOut, Camera, Phone, FileText, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { userApi, API_BASE_URL, UserProfile } from '@/lib/api';
 import { FeedbackButton } from '@/components/FeedbackButton';
 import { useButtonFeedback } from '@/hooks/useButtonFeedback';
@@ -227,7 +227,6 @@ export default function ProfilePage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2"><Camera className="h-5 w-5" /> Profile Photo</CardTitle>
-                                <CardDescription>Upload a profile picture (JPG, PNG, or WEBP — max 5 MB)</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex flex-col sm:flex-row items-center gap-6">

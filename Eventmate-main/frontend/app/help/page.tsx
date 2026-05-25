@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MessageCircle, Send, Headphones } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Send, Headphones, Loader2 } from 'lucide-react';
+import { publicApi } from '@/lib/api';
+
+const SUPPORT_EMAIL = 'tihitnaejigu@gmail.com';
+const SUPPORT_PHONE = '0777429027';
 
 export default function HelpPage() {
     const [formData, setFormData] = useState({
@@ -18,11 +22,23 @@ export default function HelpPage() {
         message: '',
     });
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        // In a real app, this would send the form data to a server
-        setSubmitted(true);
+        setSubmitting(true);
+        setError('');
+
+        try {
+            await publicApi.sendContactMessage(formData);
+            setSubmitted(true);
+            setFormData({ name: '', email: '', subject: '', message: '' });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -52,7 +68,12 @@ export default function HelpPage() {
                                             <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
                                             <div>
                                                 <p className="font-medium">Email Support</p>
-                                                <p className="text-sm text-muted-foreground">support@eventmate.com</p>
+                                                <a
+                                                    href={`mailto:${SUPPORT_EMAIL}`}
+                                                    className="text-sm text-muted-foreground hover:text-crimson"
+                                                >
+                                                    {SUPPORT_EMAIL}
+                                                </a>
                                                 <p className="text-xs text-muted-foreground">Response time: 24-48 hours</p>
                                             </div>
                                         </div>
@@ -60,7 +81,12 @@ export default function HelpPage() {
                                             <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
                                             <div>
                                                 <p className="font-medium">Phone Support</p>
-                                                <p className="text-sm text-muted-foreground">1-800-EVENT-MATE</p>
+                                                <a
+                                                    href={`tel:${SUPPORT_PHONE}`}
+                                                    className="text-sm text-muted-foreground hover:text-crimson"
+                                                >
+                                                    {SUPPORT_PHONE}
+                                                </a>
                                                 <p className="text-xs text-muted-foreground">Mon-Fri, 9am-6pm EST</p>
                                             </div>
                                         </div>
@@ -123,6 +149,11 @@ export default function HelpPage() {
                                         </div>
                                     ) : (
                                         <form onSubmit={handleSubmit} className="space-y-4">
+                                            {error && (
+                                                <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                                                    {error}
+                                                </p>
+                                            )}
                                             <div className="space-y-2">
                                                 <Label htmlFor="name">Name</Label>
                                                 <Input
@@ -131,6 +162,7 @@ export default function HelpPage() {
                                                     value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                     required
+                                                    disabled={submitting}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -142,6 +174,7 @@ export default function HelpPage() {
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                     required
+                                                    disabled={submitting}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -152,6 +185,7 @@ export default function HelpPage() {
                                                     value={formData.subject}
                                                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                                     required
+                                                    disabled={submitting}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -163,11 +197,25 @@ export default function HelpPage() {
                                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                                     rows={4}
                                                     required
+                                                    disabled={submitting}
                                                 />
                                             </div>
-                                            <Button type="submit" className="w-full bg-crimson hover:bg-crimson-dark">
-                                                <Send className="mr-2 h-4 w-4" />
-                                                Send Message
+                                            <Button
+                                                type="submit"
+                                                className="w-full bg-crimson hover:bg-crimson-dark"
+                                                disabled={submitting}
+                                            >
+                                                {submitting ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Sending...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send className="mr-2 h-4 w-4" />
+                                                        Send Message
+                                                    </>
+                                                )}
                                             </Button>
                                         </form>
                                     )}

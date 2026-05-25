@@ -149,14 +149,14 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-crimson shrink-0" />
-                <a href="tel:+251919133232" className="hover:text-crimson transition-colors">
-                  +251 91 913 3232
+                <a href="tel:0777429027" className="hover:text-crimson transition-colors">
+                  0777429027
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-crimson shrink-0" />
-                <a href="mailto:hello@eventmate.com" className="hover:text-crimson transition-colors">
-                  hello@eventmate.com
+                <a href="mailto:tihitnaejigu@gmail.com" className="hover:text-crimson transition-colors">
+                  tihitnaejigu@gmail.com
                 </a>
               </li>
             </ul>
@@ -164,7 +164,7 @@ const Footer = () => {
         </div>
  
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-white/50 text-xs uppercase tracking-widest font-bold">
-          <p>© 2024 EventMate. All rights reserved.</p>
+          <p>© 2026 EventMate. All rights reserved.</p>
           <div className="flex gap-8">
             <Link href="/terms" className="hover:text-white transition-colors">
               Terms of Service
@@ -174,12 +174,6 @@ const Footer = () => {
               className="hover:text-white transition-colors"
             >
               Cookie Policy
-            </Link>
-            <Link href="/faq" className="hover:text-white transition-colors">
-              FAQ
-            </Link>
-            <Link href="/help" className="hover:text-white transition-colors">
-              Help
             </Link>
           </div>
         </div>

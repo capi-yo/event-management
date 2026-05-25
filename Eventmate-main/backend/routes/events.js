@@ -5,6 +5,7 @@ const { isOrganizer } = require('../middleware/rbac');
 const { eventValidation, registrationValidation } = require('../middleware/validation');
 const { logger } = require('../utils/logger');
 const { createNotification } = require('../utils/notify');
+const { normalizePercentageDiscount, enrichTicketCategory, calculateDiscountedPrice } = require('../utils/pricing');
 const multer = require('multer');
 const path = require('path');
 
@@ -560,16 +561,26 @@ router.get('/organizer/tickets', authenticate, isOrganizer, async (req, res) => 
                 status = 'active';
             }
 
+            const enriched = enrichTicketCategory({
+                ...ticket,
+                price: ticket.price,
+                discount_type: ticket.discount_type || 'none',
+                discount_value: ticket.discount_value || 0
+            });
+
             return {
                 id: ticket.id,
                 event: ticket.event,
                 type: ticket.type,
-                price: parseFloat(ticket.price),
+                price: enriched.original_price,
+                original_price: enriched.original_price,
+                discount_type: enriched.discount_type || 'none',
+                discount_value: parseFloat(enriched.discount_value || 0),
+                discount_percentage: enriched.discount_percentage,
+                discounted_price: enriched.discounted_price,
                 sold: sold,
                 revenue: parseFloat(ticket.revenue),
                 status: status,
-                discount_type: ticket.discount_type || 'none',
-                discount_value: parseFloat(ticket.discount_value || 0)
             };
         });
 
@@ -684,7 +695,7 @@ router.get('/:id/ticket-categories', async (req, res) => {
         res.json({
             success: true,
             data: {
-                categories: categoriesResult.rows
+                categories: categoriesResult.rows.map(enrichTicketCategory)
             }
         });
     } catch (error) {
@@ -752,6 +763,14 @@ router.post('/', authenticate, isOrganizer, eventValidation.create, async (req, 
         // Insert ticket categories if provided
         if (ticket_categories && Array.isArray(ticket_categories) && ticket_categories.length > 0) {
             for (const ticketCategory of ticket_categories) {
+                const discount = normalizePercentageDiscount(ticketCategory);
+                if (discount.error) {
+                    return res.status(400).json({
+                        success: false,
+                        message: discount.error
+                    });
+                }
+
                 await db.query(
                     `INSERT INTO ticket_categories (event_id, name, price, capacity, discount_type, discount_value)
                      VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -760,8 +779,8 @@ router.post('/', authenticate, isOrganizer, eventValidation.create, async (req, 
                         ticketCategory.name,
                         ticketCategory.price || 0,
                         ticketCategory.capacity || 0,
-                        ticketCategory.discount_type || 'none',
-                        ticketCategory.discount_value || 0
+                        discount.discount_type,
+                        discount.discount_value
                     ]
                 );
             }
@@ -1316,16 +1335,11 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
             });
         }
 
-        // Calculate discounted price
-        let purchasePrice = parseFloat(ticketCategory.price);
-        if (ticketCategory.discount_type === 'percentage') {
-            const discountPct = parseFloat(ticketCategory.discount_value) || 0;
-            purchasePrice = purchasePrice * (1 - discountPct / 100);
-        } else if (ticketCategory.discount_type === 'fixed') {
-            const discountAmt = parseFloat(ticketCategory.discount_value) || 0;
-            purchasePrice = Math.max(0, purchasePrice - discountAmt);
-        }
-        purchasePrice = Math.round(purchasePrice * 100) / 100;
+        const purchasePrice = calculateDiscountedPrice(
+            ticketCategory.price,
+            ticketCategory.discount_type,
+            ticketCategory.discount_value
+        );
 
         // Create registration with ticket_type set to ticket category name and Pending status for admin approval
         const regResult = await db.query(
@@ -1674,7 +1688,7 @@ router.delete('/:id/favorite', authenticate, async (req, res) => {
 router.put('/ticket-categories/:id', authenticate, isOrganizer, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, price, capacity } = req.body;
+        const { name, price, capacity, discount_type, discount_value, discount_percentage } = req.body;
 
         // Validate input
         if (!name || name.trim() === '') {
@@ -1695,6 +1709,26 @@ router.put('/ticket-categories/:id', authenticate, isOrganizer, async (req, res)
             return res.status(400).json({
                 success: false,
                 message: 'Capacity must be a non-negative integer'
+            });
+        }
+
+        const discount = normalizePercentageDiscount({
+            discount_type,
+            discount_value,
+            discount_percentage
+        });
+        if (discount.error) {
+            return res.status(400).json({
+                success: false,
+                message: discount.error
+            });
+        }
+
+        const parsedPrice = parseFloat(price);
+        if (discount.discount_type === 'fixed' && discount.discount_value > parsedPrice) {
+            return res.status(400).json({
+                success: false,
+                message: 'Fixed discount cannot exceed the ticket price'
             });
         }
 
@@ -1724,16 +1758,16 @@ router.put('/ticket-categories/:id', authenticate, isOrganizer, async (req, res)
         // Update the ticket category
         const result = await db.query(
             `UPDATE ticket_categories 
-             SET name = $1, price = $2, capacity = $3, updated_at = CURRENT_TIMESTAMP
-             WHERE id = $4
+             SET name = $1, price = $2, capacity = $3, discount_type = $4, discount_value = $5, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $6
              RETURNING *`,
-            [name.trim(), parseFloat(price), parseInt(capacity), id]
+            [name.trim(), parsedPrice, parseInt(capacity), discount.discount_type, discount.discount_value, id]
         );
 
         res.json({
             success: true,
             message: 'Ticket category updated successfully',
-            data: { ticketCategory: result.rows[0] }
+            data: { ticketCategory: enrichTicketCategory(result.rows[0]) }
         });
     } catch (error) {
         console.error('Update ticket category error:', error);

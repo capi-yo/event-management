@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Menu, X, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -61,7 +62,13 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
-          <ThemeToggle />
+          <ThemeToggle
+            className={
+              scrolled || isAuthPage || !isLandingPage
+                ? undefined
+                : 'border-white/50 bg-white/15 text-white hover:bg-white/25 hover:text-white'
+            }
+          />
           {navLinks.map((link) => (
             isLandingPage && link.href.startsWith('#') ? (
               <a
@@ -81,16 +88,27 @@ const Navbar = () => {
               </Link>
             )
           ))}
-          <Link href='/register'>
-            <button className={`px-5 py-2 rounded-lg border-2 font-semibold text-sm transition-all duration-300 cursor-pointer ${scrolled || !isLandingPage ? 'border-crimson text-crimson hover:bg-crimson hover:text-white' : 'border-white text-white hover:bg-white hover:text-crimson'}`}>
-              Sign Up
-            </button>
-          </Link>
+          <Button
+            asChild
+            className={
+              scrolled || isAuthPage || !isLandingPage
+                ? 'h-9 border-2 border-crimson bg-background px-5 font-semibold text-crimson shadow-none hover:border-crimson hover:bg-crimson hover:text-white'
+                : 'h-9 border-2 border-white bg-transparent px-5 font-semibold text-white shadow-none hover:border-white hover:bg-white hover:text-crimson'
+            }
+          >
+            <Link href="/register">Sign Up</Link>
+          </Button>
         </div>
 
         {/* Mobile Toggle */}
         <div className="md:hidden flex items-center gap-2">
-          <ThemeToggle />
+          <ThemeToggle
+            className={
+              scrolled || isAuthPage || !isLandingPage
+                ? undefined
+                : 'border-white/50 bg-white/15 text-white hover:bg-white/25 hover:text-white'
+            }
+          />
           <button onClick={() => setIsOpen(!isOpen)} className={scrolled || !isLandingPage ? 'text-slate-900 dark:text-white' : 'text-white'}>
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
@@ -128,11 +146,9 @@ const Navbar = () => {
                   </Link>
                 )
               ))}
-              <Link href='/register'>
-                <button className="w-full py-3 rounded-lg bg-crimson text-white font-bold mt-2 cursor-pointer">
-                  Sign Up
-                </button>
-              </Link>
+              <Button asChild className="mt-2 h-10 w-full bg-crimson font-bold text-white hover:bg-crimson-dark hover:text-white">
+                <Link href="/register">Sign Up</Link>
+              </Button>
             </div>
           </motion.div>
         )}

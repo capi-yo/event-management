@@ -128,18 +128,9 @@ export default function OrganiserDashboard() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
-                    <p className="text-muted-foreground">Welcome back! Here's how your events are performing.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button asChild className="bg-crimson hover:bg-crimson-dark">
-                        <Link href="/organiser/create">
-                            <Plus className="mr-2 h-4 w-4" /> Create Event
-                        </Link>
-                    </Button>
-                </div>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
+                <p className="text-muted-foreground">Welcome back! Here's how your events are performing.</p>
             </div>
 
             {/* Quick Actions */}
@@ -292,7 +283,7 @@ export default function OrganiserDashboard() {
                                     <h3 className={`text-xl font-bold ${theme === "dark" ? "text-slate-100" : "text-slate-900"}`}>Ready to grow your audience?</h3>
                                     <p className={theme === "dark" ? "text-slate-400" : "text-muted-foreground"}>Create a new event and start selling tickets today.</p>
                                 </div>
-                                <Button asChild className="bg-crimson hover:bg-crimson-dark text-white font-semibold">
+                                <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
                                     <Link href="/organiser/create">
                                         <Plus className="h-5 w-5 mr-2" />
                                         Create New Event

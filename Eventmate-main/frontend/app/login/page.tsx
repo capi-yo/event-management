@@ -21,7 +21,6 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [fieldsReady, setFieldsReady] = useState(false);
 
     const getRedirectUrl = (role: string): string => {
         switch (role) {
@@ -40,8 +39,8 @@ export default function LoginPage() {
 
         // Read from the form DOM so browser autofill cannot desync from React state
         const form = e.currentTarget;
-        const emailInput = form.elements.namedItem('login-email') as HTMLInputElement;
-        const passwordInput = form.elements.namedItem('login-password') as HTMLInputElement;
+        const emailInput = form.elements.namedItem('email') as HTMLInputElement;
+        const passwordInput = form.elements.namedItem('password') as HTMLInputElement;
         const submittedEmail = (emailInput?.value ?? email).trim();
         const submittedPassword = passwordInput?.value ?? password;
 
@@ -90,7 +89,7 @@ export default function LoginPage() {
                             Enter your email and password to sign in to your account
                         </CardDescription>
                     </CardHeader>
-                    <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                    <form onSubmit={handleSubmit} autoComplete="on" noValidate>
                         <CardContent className="space-y-4">
                             {error && (
                                 <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/20">
@@ -102,21 +101,13 @@ export default function LoginPage() {
                                     Email
                                 </label>
                                 <Input
-                                    id="login-email"
-                                    name="login-email"
+                                    id="email"
+                                    name="email"
                                     type="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
-                                    onFocus={() => setFieldsReady(true)}
-                                    readOnly={!fieldsReady}
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                    autoCapitalize="none"
-                                    spellCheck={false}
-                                    data-lpignore="true"
-                                    data-1p-ignore
+                                    autoComplete="email"
                                     required
                                 />
                             </div>
@@ -126,18 +117,13 @@ export default function LoginPage() {
                                 </label>
                                 <div className="relative">
                                     <Input
-                                        id="login-password"
-                                        name="login-password"
+                                        id="password"
+                                        name="password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Enter your password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
-                                        onFocus={() => setFieldsReady(true)}
-                                        readOnly={!fieldsReady}
-                                        autoComplete="off"
-                                        data-lpignore="true"
-                                        data-1p-ignore
+                                        autoComplete="current-password"
                                         required
                                     />
                                     <button

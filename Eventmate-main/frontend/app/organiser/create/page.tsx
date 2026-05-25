@@ -45,6 +45,11 @@ import { useAuth } from "@/components/AuthContext";
 import { eventsApi } from "@/lib/api";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { useButtonFeedback } from "@/hooks/useButtonFeedback";
+import PriceDisplay from "@/components/PriceDisplay";
+import {
+  discountFieldsFromPercentage,
+  validateDiscountPercentage,
+} from "@/lib/pricing";
 
 export default function OrganiserCreateEventPage() {
   const { theme } = useTheme();
@@ -71,7 +76,7 @@ export default function OrganiserCreateEventPage() {
     image_url: "",
     isFree: true,
     ticketCategories: [
-      { name: "General Admission", price: "0", capacity: "100" },
+      { name: "General Admission", price: "0", capacity: "100", discountPercentage: "0" },
     ],
     location_latitude: 9.032,
     location_longitude: 38.7469,
@@ -115,7 +120,7 @@ export default function OrganiserCreateEventPage() {
       ...formData,
       ticketCategories: [
         ...formData.ticketCategories,
-        { name: "", price: "", capacity: "" },
+        { name: "", price: "", capacity: "", discountPercentage: "0" },
       ],
     });
   };
@@ -191,11 +196,19 @@ export default function OrganiserCreateEventPage() {
         is_paid: !formData.isFree,
         ticket_categories: formData.isFree
           ? []
-          : formData.ticketCategories.map((cat) => ({
-              name: cat.name,
-              price: parseFloat(cat.price) || 0,
-              capacity: parseInt(cat.capacity) || 0,
-            })),
+          : formData.ticketCategories.map((cat) => {
+              const discount = discountFieldsFromPercentage(
+                cat.discountPercentage ?? "0",
+              );
+              return {
+                name: cat.name,
+                price: parseFloat(cat.price) || 0,
+                capacity: parseInt(cat.capacity) || 0,
+                discount_percentage: discount.discount_value,
+                discount_type: discount.discount_type,
+                discount_value: discount.discount_value,
+              };
+            }),
       };
 
       console.log("Event data being sent:", eventData);
@@ -230,9 +243,10 @@ export default function OrganiserCreateEventPage() {
         if (formData.isFree) return true;
         return (
           formData.ticketCategories.length > 0 &&
-          formData.ticketCategories.every(
-            (cat) => cat.name && cat.price && cat.capacity,
-          )
+          formData.ticketCategories.every((cat) => {
+            if (!cat.name || !cat.price || !cat.capacity) return false;
+            return !validateDiscountPercentage(cat.discountPercentage ?? "0");
+          })
         );
       case 4:
         return true;
@@ -770,68 +784,126 @@ export default function OrganiserCreateEventPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {formData.ticketCategories.map((category, index) => (
-                    <div
-                      key={index}
-                      className={`p-4 rounded-lg border ${theme === "dark" ? "border-slate-800 bg-slate-800/50" : "bg-slate-50"} flex flex-col sm:flex-row gap-4 items-end`}
-                    >
-                      <div className="flex-1 space-y-2 w-full">
-                        <Label className="text-xs">Category Name</Label>
-                        <Input
-                          placeholder="e.g. Early Bird"
-                          value={category.name}
-                          onChange={(e) =>
-                            updateTicketCategory(index, "name", e.target.value)
-                          }
-                          className={
-                            theme === "dark" ? "bg-slate-900" : "bg-white"
-                          }
-                        />
-                      </div>
-                      <div className="w-full sm:w-24 space-y-2">
-                        <Label className="text-xs">Price (ETB)</Label>
-                        <Input
-                          type="number"
-                          placeholder="0.00"
-                          value={category.price}
-                          onChange={(e) =>
-                            updateTicketCategory(index, "price", e.target.value)
-                          }
-                          className={
-                            theme === "dark" ? "bg-slate-900" : "bg-white"
-                          }
-                        />
-                      </div>
-                      <div className="w-full sm:w-24 space-y-2">
-                        <Label className="text-xs">Capacity</Label>
-                        <Input
-                          type="number"
-                          placeholder="100"
-                          value={category.capacity}
-                          onChange={(e) =>
-                            updateTicketCategory(
-                              index,
-                              "capacity",
-                              e.target.value,
-                            )
-                          }
-                          className={
-                            theme === "dark" ? "bg-slate-900" : "bg-white"
-                          }
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeTicketCategory(index)}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                        disabled={formData.ticketCategories.length === 1}
+                  {formData.ticketCategories.map((category, index) => {
+                    const discountError = validateDiscountPercentage(
+                      category.discountPercentage ?? "0",
+                    );
+                    const discount = discountFieldsFromPercentage(
+                      category.discountPercentage ?? "0",
+                    );
+
+                    return (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg border ${theme === "dark" ? "border-slate-800 bg-slate-800/50" : "bg-slate-50"} space-y-4`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="flex flex-col sm:flex-row gap-4 items-end">
+                          <div className="flex-1 space-y-2 w-full">
+                            <Label className="text-xs">Category Name</Label>
+                            <Input
+                              placeholder="e.g. Early Bird"
+                              value={category.name}
+                              onChange={(e) =>
+                                updateTicketCategory(index, "name", e.target.value)
+                              }
+                              className={
+                                theme === "dark" ? "bg-slate-900" : "bg-white"
+                              }
+                            />
+                          </div>
+                          <div className="w-full sm:w-28 space-y-2">
+                            <Label className="text-xs">Price (ETB)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={category.price}
+                              onChange={(e) =>
+                                updateTicketCategory(index, "price", e.target.value)
+                              }
+                              className={
+                                theme === "dark" ? "bg-slate-900" : "bg-white"
+                              }
+                            />
+                          </div>
+                          <div className="w-full sm:w-28 space-y-2">
+                            <Label className="text-xs">Discount (%)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="1"
+                              placeholder="0"
+                              value={category.discountPercentage ?? "0"}
+                              onChange={(e) =>
+                                updateTicketCategory(
+                                  index,
+                                  "discountPercentage",
+                                  e.target.value,
+                                )
+                              }
+                              className={
+                                theme === "dark" ? "bg-slate-900" : "bg-white"
+                              }
+                            />
+                          </div>
+                          <div className="w-full sm:w-24 space-y-2">
+                            <Label className="text-xs">Capacity</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="100"
+                              value={category.capacity}
+                              onChange={(e) =>
+                                updateTicketCategory(
+                                  index,
+                                  "capacity",
+                                  e.target.value,
+                                )
+                              }
+                              className={
+                                theme === "dark" ? "bg-slate-900" : "bg-white"
+                              }
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeTicketCategory(index)}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            disabled={formData.ticketCategories.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {discountError && (
+                          <p className="text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {discountError}
+                          </p>
+                        )}
+                        {parseFloat(category.price) > 0 && (
+                          <div
+                            className={`flex items-center justify-between gap-4 p-3 rounded-md border ${theme === "dark" ? "border-slate-700 bg-slate-900/50" : "border-slate-200 bg-white"}`}
+                          >
+                            <p
+                              className={`text-xs font-medium uppercase tracking-wider ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"}`}
+                            >
+                              Price preview
+                            </p>
+                            <PriceDisplay
+                              price={category.price}
+                              discountType={discount.discount_type}
+                              discountValue={discount.discount_value}
+                              size="sm"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -936,11 +1008,37 @@ export default function OrganiserCreateEventPage() {
                   >
                     Pricing
                   </p>
-                  <p className={theme === "dark" ? "text-slate-100" : ""}>
-                    {formData.isFree
-                      ? "Free Event"
-                      : `${formData.ticketCategories.length} Ticket Categories`}
-                  </p>
+                  {formData.isFree ? (
+                    <p className={theme === "dark" ? "text-slate-100" : ""}>
+                      Free Event
+                    </p>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      {formData.ticketCategories.map((cat, i) => {
+                        const discount = discountFieldsFromPercentage(
+                          cat.discountPercentage ?? "0",
+                        );
+                        return (
+                          <div
+                            key={i}
+                            className={`flex items-center justify-between gap-4 p-2 rounded-md ${theme === "dark" ? "bg-slate-900/50" : "bg-white"}`}
+                          >
+                            <span
+                              className={`text-sm font-medium ${theme === "dark" ? "text-slate-200" : ""}`}
+                            >
+                              {cat.name || `Category ${i + 1}`}
+                            </span>
+                            <PriceDisplay
+                              price={cat.price}
+                              discountType={discount.discount_type}
+                              discountValue={discount.discount_value}
+                              size="sm"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
               {formData.image_url && (
@@ -989,7 +1087,7 @@ export default function OrganiserCreateEventPage() {
           {step < 4 ? (
             <Button
               onClick={() => setStep(step + 1)}
-              className={theme === "dark" ? "bg-primary" : ""}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={!canProceed()}
             >
               Next
@@ -998,11 +1096,7 @@ export default function OrganiserCreateEventPage() {
           ) : (
             <FeedbackButton
               onClick={handleSubmit}
-              className={
-                theme === "dark"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-green-600 hover:bg-green-700"
-              }
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
               loading={loading}
               feedback={createFeedback.feedback}
               defaultLabel="Create Event"
