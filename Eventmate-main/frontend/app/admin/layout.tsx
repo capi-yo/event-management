@@ -34,6 +34,7 @@ import {
     Shield,
     History,
     Ticket,
+    Banknote,
 } from "lucide-react"
 
 interface SidebarItem {
@@ -48,6 +49,7 @@ const sidebarItems: SidebarItem[] = [
     { icon: Calendar, label: "Events", href: "/admin/events", badge: "24" },
     { icon: Ticket, label: "Registrations", href: "/admin/registrations" },
     { icon: Users, label: "Users", href: "/admin/users", badge: "1.2k" },
+    { icon: Banknote, label: "Financials", href: "/admin/financials" },
     { icon: Bell, label: "Notifications", href: "/admin/notifications" },
     { icon: History, label: "Audit Trail", href: "/admin/audit" },
 ]

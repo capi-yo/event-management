@@ -118,9 +118,6 @@ export default function HelpPage() {
                                         <a href="/faq?q=1" className="block p-2 rounded hover:bg-muted text-sm">
                                             → Ticket Registration Guide
                                         </a>
-                                        <a href={user ? '/profile' : '/login?redirect=/profile'} className="block p-2 rounded hover:bg-muted text-sm">
-                                            → Account Settings
-                                        </a>
                                     </CardContent>
                                 </Card>
                             </div>

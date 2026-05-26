@@ -773,4 +773,27 @@ export const adminApi = {
             method: 'PATCH',
             body: JSON.stringify({ status }),
         }),
+
+    getFinanceAnalytics: () =>
+        fetchApi<{
+            success: boolean;
+            data: {
+                stats: {
+                    total_gross: number;
+                    total_commission: number;
+                    total_organizer: number;
+                    total_tickets_sold: number;
+                };
+                commission_rate: number;
+                recent_commissions: any[];
+                organizer_earnings: any[];
+                revenue_trend: any[];
+            };
+        }>('/admin/finance/analytics'),
+
+    updateFinanceSettings: (commission_rate: number) =>
+        fetchApi<{ success: boolean; data: { commission_rate: number } }>('/admin/finance/settings', {
+            method: 'POST',
+            body: JSON.stringify({ commission_rate }),
+        }),
 };

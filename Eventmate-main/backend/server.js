@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const publicRoutes = require('./routes/public');
 const bankRoutes = require('./routes/bank');
+const adminFinanceRoutes = require('./routes/admin-finance');
 // const ticketCategoryRoutes = require('./routes/ticket-categories');
 
 const app = express();
@@ -87,6 +88,7 @@ app.use('/admin', adminRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/public', publicRoutes);
 app.use('/bank', bankRoutes);
+app.use('/admin/finance', adminFinanceRoutes);
 // app.use('/ticket-categories', ticketCategoryRoutes);
 
 // Swagger documentation setup

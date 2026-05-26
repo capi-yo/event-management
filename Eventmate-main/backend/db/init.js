@@ -271,6 +271,49 @@ const initializeDatabase = async () => {
                 console.log('  ✗ Bank migration: ' + err.message.substring(0, 50));
             }
         }
+
+        // Platform Commission migrations
+        console.log('Running migrations for Platform Commission & Settings...');
+        const commissionMigrations = [
+            `CREATE TABLE IF NOT EXISTS system_settings (
+                key VARCHAR(100) PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS platform_commissions (
+                id SERIAL PRIMARY KEY,
+                registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+                event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+                organizer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                ticket_price DECIMAL(10, 2) NOT NULL,
+                commission_rate DECIMAL(5, 2) NOT NULL,
+                commission_amount DECIMAL(10, 2) NOT NULL,
+                organizer_amount DECIMAL(10, 2) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE INDEX IF NOT EXISTS idx_platform_commissions_organizer ON platform_commissions(organizer_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_platform_commissions_event ON platform_commissions(event_id)`
+        ];
+        for (const stmt of commissionMigrations) {
+            try {
+                await pool.query(stmt);
+            } catch (err) {
+                console.log('  ✗ Commission migration: ' + err.message.substring(0, 50));
+            }
+        }
+        
+        // Seed default commission rate
+        try {
+            await pool.query(
+                `INSERT INTO system_settings (key, value)
+                 VALUES ('admin_commission_rate', '10')
+                 ON CONFLICT (key) DO NOTHING`
+            );
+            console.log('  ✓ Seeded default admin_commission_rate (10%)');
+        } catch (err) {
+            console.log('  ✗ Seeding default commission error: ' + err.message.substring(0, 50));
+        }
+
         try {
             const { backfillAccountsForAllUsers } = require('../utils/bankService');
             await backfillAccountsForAllUsers();

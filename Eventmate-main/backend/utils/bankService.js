@@ -187,21 +187,47 @@ async function purchaseTicketWithBank(buyerUserId, eventId, ticketCategoryId) {
         const buyerAccount = await ensureBankAccount(buyerUserId, client);
         const organizerAccount = await ensureBankAccount(event.organizer_id, client);
 
+        // Fetch platform commission rate
+        let commissionRate = 10.00;
+        try {
+            const settingsResult = await client.query(
+                "SELECT value FROM system_settings WHERE key = 'admin_commission_rate'"
+            );
+            if (settingsResult.rows.length > 0) {
+                commissionRate = parseFloat(settingsResult.rows[0].value);
+            }
+        } catch (settingsErr) {
+            console.error("Error fetching admin_commission_rate:", settingsErr);
+        }
+
+        // Fetch the platform Administrator
+        let adminUserId = null;
+        const adminResult = await client.query(
+            "SELECT id FROM users WHERE role = 'Administrator' ORDER BY id ASC LIMIT 1"
+        );
+        if (adminResult.rows.length > 0) {
+            adminUserId = adminResult.rows[0].id;
+        } else {
+            await client.query('ROLLBACK');
+            return { error: 'Platform Administrator account not found', status: 500 };
+        }
+
+        const adminAccount = await ensureBankAccount(adminUserId, client);
+
         if (buyerAccount.status === 'frozen') {
             await client.query('ROLLBACK');
             return { error: 'Your bank account is frozen', status: 403 };
         }
 
-        const buyerLocked = await client.query(
-            'SELECT * FROM bank_accounts WHERE id = $1 FOR UPDATE',
-            [buyerAccount.id]
-        );
-        const organizerLocked = await client.query(
-            'SELECT * FROM bank_accounts WHERE id = $1 FOR UPDATE',
-            [organizerAccount.id]
-        );
+        // Safely lock accounts deterministically to prevent deadlocks
+        const accountIdsToLock = [buyerAccount.id, organizerAccount.id, adminAccount.id].sort((a, b) => a - b);
+        const lockedAccounts = {};
+        for (const accId of accountIdsToLock) {
+            const res = await client.query('SELECT * FROM bank_accounts WHERE id = $1 FOR UPDATE', [accId]);
+            lockedAccounts[accId] = res.rows[0];
+        }
 
-        const buyerBalance = parseFloat(buyerLocked.rows[0].balance);
+        const buyerBalance = parseFloat(lockedAccounts[buyerAccount.id].balance);
         if (buyerBalance < purchasePrice) {
             await client.query('ROLLBACK');
             return {
@@ -210,15 +236,25 @@ async function purchaseTicketWithBank(buyerUserId, eventId, ticketCategoryId) {
             };
         }
 
+        const commissionAmount = parseFloat((purchasePrice * (commissionRate / 100)).toFixed(2));
+        const organizerAmount = parseFloat((purchasePrice - commissionAmount).toFixed(2));
+
         const reference = generateTransactionReference();
 
+        // 1. Debit buyer the full purchase price
         await client.query(
             'UPDATE bank_accounts SET balance = balance - $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
             [purchasePrice, buyerAccount.id]
         );
+        // 2. Credit organizer their earnings share
         await client.query(
             'UPDATE bank_accounts SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-            [purchasePrice, organizerAccount.id]
+            [organizerAmount, organizerAccount.id]
+        );
+        // 3. Credit admin/platform the commission fee
+        await client.query(
+            'UPDATE bank_accounts SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+            [commissionAmount, adminAccount.id]
         );
 
         const regResult = await client.query(
@@ -229,6 +265,7 @@ async function purchaseTicketWithBank(buyerUserId, eventId, ticketCategoryId) {
         );
         const registration = regResult.rows[0];
 
+        // Primary Ticket Purchase transaction ledger entry
         await client.query(
             `INSERT INTO bank_transactions (reference, from_account_id, to_account_id, amount, type, status, registration_id, event_id, description)
              VALUES ($1, $2, $3, $4, 'ticket_purchase', 'completed', $5, $6, $7)`,
@@ -240,6 +277,37 @@ async function purchaseTicketWithBank(buyerUserId, eventId, ticketCategoryId) {
                 registration.id,
                 eventId,
                 `Ticket: ${ticketCategory.name} — ${event.title}`,
+            ]
+        );
+
+        // Platform Commission deduction ledger entry
+        const commReference = generateTransactionReference();
+        await client.query(
+            `INSERT INTO bank_transactions (reference, from_account_id, to_account_id, amount, type, status, registration_id, event_id, description)
+             VALUES ($1, $2, $3, $4, 'transfer', 'completed', $5, $6, $7)`,
+            [
+                commReference,
+                organizerAccount.id,
+                adminAccount.id,
+                commissionAmount,
+                registration.id,
+                eventId,
+                `Platform Commission (${commissionRate}%) for ticket purchase ${reference}`,
+            ]
+        );
+
+        // Detailed Commission split record
+        await client.query(
+            `INSERT INTO platform_commissions (registration_id, event_id, organizer_id, ticket_price, commission_rate, commission_amount, organizer_amount)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+                registration.id,
+                eventId,
+                event.organizer_id,
+                purchasePrice,
+                commissionRate,
+                commissionAmount,
+                organizerAmount
             ]
         );
 

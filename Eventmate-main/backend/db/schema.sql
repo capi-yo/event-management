@@ -164,3 +164,26 @@ CREATE INDEX IF NOT EXISTS idx_bank_accounts_user_id ON bank_accounts(user_id);
 CREATE INDEX IF NOT EXISTS idx_bank_transactions_from ON bank_transactions(from_account_id);
 CREATE INDEX IF NOT EXISTS idx_bank_transactions_to ON bank_transactions(to_account_id);
 CREATE INDEX IF NOT EXISTS idx_bank_transactions_reference ON bank_transactions(reference);
+
+-- System-wide configurations (e.g. commission rate)
+CREATE TABLE IF NOT EXISTS system_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Platform commission tracking for paid ticket purchases
+CREATE TABLE IF NOT EXISTS platform_commissions (
+    id SERIAL PRIMARY KEY,
+    registration_id INTEGER NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    organizer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    ticket_price DECIMAL(10, 2) NOT NULL,
+    commission_rate DECIMAL(5, 2) NOT NULL,
+    commission_amount DECIMAL(10, 2) NOT NULL,
+    organizer_amount DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_platform_commissions_organizer ON platform_commissions(organizer_id);
+CREATE INDEX IF NOT EXISTS idx_platform_commissions_event ON platform_commissions(event_id);
