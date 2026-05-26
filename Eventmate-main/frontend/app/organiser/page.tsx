@@ -5,7 +5,7 @@ import { useAuth } from "@/components/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "@/components/theme-provider"
 import {
     Table,
@@ -15,24 +15,30 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog"
 import {
     Users,
     Calendar,
     Ticket,
     Banknote,
-    TrendingUp,
     Plus,
     Eye,
-    Clock,
-    CheckCircle2,
-    CalendarDays,
-    BarChart3,
     Bell,
     Loader2,
     PlusCircle,
+    MapPin,
+    Clock,
+    Tag,
+    Info,
+    X,
 } from "lucide-react"
-import { eventsApi, notificationsApi } from "@/lib/api"
+import { eventsApi, notificationsApi, API_BASE_URL } from "@/lib/api"
 import Link from "next/link"
 
 // Status Badge Component
@@ -74,6 +80,134 @@ function QuickAction({ icon: Icon, label, href }: { icon: React.ElementType, lab
     )
 }
 
+// Event Detail Modal
+function EventDetailModal({ event, open, onClose }: { event: any; open: boolean; onClose: () => void }) {
+    const { theme } = useTheme()
+
+    if (!event) return null
+
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ETB' }).format(amount)
+
+    const formatDate = (d: string) => {
+        if (!d) return 'N/A'
+        return new Date(d).toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        })
+    }
+
+    const formatTime = (d: string) => {
+        if (!d) return ''
+        return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent
+                className={`max-w-2xl max-h-[85vh] overflow-y-auto ${theme === "dark" ? "bg-slate-900 border-slate-700" : "bg-white"}`}
+            >
+                <DialogHeader>
+                    <DialogTitle className="text-xl font-bold pr-8">{event.title}</DialogTitle>
+                    <DialogDescription className="flex items-center gap-2 mt-1">
+                        <StatusBadge status={event.status} />
+                        {event.category && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Tag className="h-3 w-3" /> {event.category}
+                            </span>
+                        )}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-5 mt-2">
+                    {/* Banner image */}
+                    {event.image_url && (
+                        <div className="rounded-lg overflow-hidden h-48 w-full">
+                            <img
+                                src={event.image_url.startsWith('http') ? event.image_url : `${API_BASE_URL}${event.image_url}`}
+                                alt={event.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Date & Time */}
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg ${theme === "dark" ? "bg-slate-800/60" : "bg-slate-50"}`}>
+                        <div className="flex items-start gap-3">
+                            <Calendar className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Date</p>
+                                <p className="text-sm font-medium">{formatDate(event.date || event.start_date)}</p>
+                            </div>
+                        </div>
+                        {(event.date || event.start_date) && (
+                            <div className="flex items-start gap-3">
+                                <Clock className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Time</p>
+                                    <p className="text-sm font-medium">{formatTime(event.date || event.start_date)}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Location */}
+                    {event.location && (
+                        <div className="flex items-start gap-3">
+                            <MapPin className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Location</p>
+                                <p className="text-sm font-medium">{event.location}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Description */}
+                    {event.description && (
+                        <div className="flex items-start gap-3">
+                            <Info className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Description</p>
+                                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">{event.description}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Ticket / Price Info */}
+                    <div className={`grid grid-cols-2 gap-4 p-4 rounded-lg ${theme === "dark" ? "bg-slate-800/60" : "bg-slate-50"}`}>
+                        <div className="flex items-start gap-3">
+                            <Ticket className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Capacity</p>
+                                <p className="text-sm font-medium">
+                                    {event.capacity != null ? `${event.capacity} seats` : 'Unlimited'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <Banknote className="h-5 w-5 text-crimson mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Ticket Price</p>
+                                <p className="text-sm font-medium">
+                                    {event.ticket_price != null && event.ticket_price > 0
+                                        ? formatCurrency(event.ticket_price)
+                                        : 'Free'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
+                    <Button variant="outline" onClick={onClose}>
+                        <X className="h-4 w-4 mr-2" /> Close
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function OrganiserDashboard() {
     const { user, loading: authLoading } = useAuth()
     const { theme } = useTheme()
@@ -82,6 +216,8 @@ export default function OrganiserDashboard() {
     const [recentAttendees, setRecentAttendees] = useState<any[]>([])
     const [notifications, setNotifications] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [selectedEvent, setSelectedEvent] = useState<any>(null)
+    const [modalOpen, setModalOpen] = useState(false)
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -109,6 +245,17 @@ export default function OrganiserDashboard() {
         }
         fetchDashboardData()
     }, [user, authLoading])
+
+    const handleViewEvent = async (event: any) => {
+        // Try to fetch full event details; fall back to summary data
+        try {
+            const res = await eventsApi.getById(event.id)
+            setSelectedEvent(res.data.event || res.data)
+        } catch {
+            setSelectedEvent(event)
+        }
+        setModalOpen(true)
+    }
 
     if (authLoading) {
         return (
@@ -230,10 +377,13 @@ export default function OrganiserDashboard() {
                                                         <StatusBadge status={event.status} />
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        <Button variant="ghost" size="icon" asChild>
-                                                            <Link href={`/events/${event.id}`}>
-                                                                <Eye className="h-4 w-4" />
-                                                            </Link>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            title="View event details"
+                                                            onClick={() => handleViewEvent(event)}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
                                                         </Button>
                                                     </TableCell>
                                                 </TableRow>
@@ -294,6 +444,13 @@ export default function OrganiserDashboard() {
                     </Card>
                 </>
             )}
+
+            {/* Event Detail Modal */}
+            <EventDetailModal
+                event={selectedEvent}
+                open={modalOpen}
+                onClose={() => { setModalOpen(false); setSelectedEvent(null) }}
+            />
         </div>
     )
 }

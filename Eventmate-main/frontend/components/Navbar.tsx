@@ -92,8 +92,8 @@ const Navbar = () => {
             asChild
             className={
               scrolled || isAuthPage || !isLandingPage
-                ? 'h-9 border-2 border-crimson bg-background px-5 font-semibold text-crimson shadow-none hover:border-crimson hover:bg-crimson hover:text-white'
-                : 'h-9 border-2 border-white bg-transparent px-5 font-semibold text-white shadow-none hover:border-white hover:bg-white hover:text-crimson'
+                ? 'h-9 border-2 border-crimson bg-background px-5 font-semibold text-crimson shadow-none hover:!border-crimson hover:!bg-crimson hover:!text-white'
+                : 'h-9 border-2 border-white bg-transparent px-5 font-semibold text-white shadow-none hover:!border-white hover:!bg-white hover:!text-crimson'
             }
           >
             <Link href="/register">Sign Up</Link>

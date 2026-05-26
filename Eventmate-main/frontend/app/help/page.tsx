@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { useAuth } from '@/components/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,7 @@ const SUPPORT_EMAIL = 'tihitnaejigu@gmail.com';
 const SUPPORT_PHONE = '0777429027';
 
 export default function HelpPage() {
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -110,13 +112,13 @@ export default function HelpPage() {
                                         <a href="/faq" className="block p-2 rounded hover:bg-muted text-sm">
                                             → Frequently Asked Questions
                                         </a>
-                                        <a href="#" className="block p-2 rounded hover:bg-muted text-sm">
+                                        <a href="/faq?q=0" className="block p-2 rounded hover:bg-muted text-sm">
                                             → How to Create an Event
                                         </a>
-                                        <a href="#" className="block p-2 rounded hover:bg-muted text-sm">
+                                        <a href="/faq?q=1" className="block p-2 rounded hover:bg-muted text-sm">
                                             → Ticket Registration Guide
                                         </a>
-                                        <a href="#" className="block p-2 rounded hover:bg-muted text-sm">
+                                        <a href={user ? '/profile' : '/login?redirect=/profile'} className="block p-2 rounded hover:bg-muted text-sm">
                                             → Account Settings
                                         </a>
                                     </CardContent>

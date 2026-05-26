@@ -72,7 +72,21 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">5. Event Organizers</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">5. Refund Policy</h2>
+              <p className="leading-relaxed mb-4">
+                All payments on EventMate are processed through our integrated payment system — EventMate Bank. The following refund terms apply:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>If an event is cancelled by the organizer, a full refund will be automatically issued to your original payment method within 5–10 business days</li>
+                <li>Refund eligibility for attendee-initiated cancellations is determined by the event organizer's individual refund policy, which is displayed on the event page</li>
+                <li>Approved refunds are processed exclusively through EventMate Bank back to the original payment source</li>
+                <li>EventMate is not responsible for refunds related to event changes (e.g., date, venue, or program changes) made by the organizer</li>
+                <li>To request a refund, contact the event organizer directly or reach our support team at <a href="mailto:tihitnaejigu@gmail.com" className="text-crimson underline">tihitnaejigu@gmail.com</a></li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">6. Event Organizers</h2>
               <p className="leading-relaxed mb-4">
                 If you create events on EventMate, you agree to:
               </p>
@@ -85,34 +99,34 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">6. Intellectual Property</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">7. Intellectual Property</h2>
               <p className="leading-relaxed">
                 The service and its original content, features, and functionality are owned by EventMate and are protected by international copyright, trademark, and other intellectual property laws.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">7. Limitation of Liability</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">8. Limitation of Liability</h2>
               <p className="leading-relaxed">
                 EventMate shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">8. Changes to Terms</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">9. Changes to Terms</h2>
               <p className="leading-relaxed">
                 We reserve the right to modify these terms at any time. We will notify users of any material changes via email or through the service.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">9. Contact Information</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">10. Contact Information</h2>
               <p className="leading-relaxed">
                 If you have any questions about these Terms, please contact us at:
               </p>
               <div className="mt-4 space-y-2">
-                <p>Email: hello@eventmate.com</p>
-                <p>Phone: +251 96 778 8933</p>
+                <p>Email: <a href="mailto:tihitnaejigu@gmail.com" className="text-crimson underline">tihitnaejigu@gmail.com</a></p>
+                <p>Phone: <a href="tel:0777429027" className="text-crimson underline">0777429027</a></p>
                 <p>Address: Addis Ababa, Ethiopia</p>
               </div>
             </section>
