@@ -15,8 +15,8 @@ const services = [
     title: 'Ticket Management',
     desc: 'Comprehensive ticketing solution with multiple categories, pricing tiers, and real-time availability tracking.',
     icon: Ticket,
-    color: 'bg-slate-50',
-    iconColor: 'text-slate-700',
+    color: 'bg-slate-50 dark:bg-zinc-900/50',
+    iconColor: 'text-slate-700 dark:text-slate-300',
   },
   {
     title: 'Event Organization',
@@ -29,8 +29,8 @@ const services = [
     title: 'Event Analytics',
     desc: 'Powerful analytics dashboard providing insights on ticket sales, revenue, and attendee engagement.',
     icon: BarChart,
-    color: 'bg-slate-50',
-    iconColor: 'text-slate-700',
+    color: 'bg-slate-50 dark:bg-zinc-900/50',
+    iconColor: 'text-slate-700 dark:text-slate-300',
   },
 ];
 
@@ -61,11 +61,11 @@ const Services = () => {
               transition={{ delay: index * 0.1 }}
               className={`p-8 rounded-3xl transition-all duration-500 hover:shadow-2xl hover:shadow-crimson/5 group ${service.color} border border-transparent hover:border-crimson/10`}
             >
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-500 ${service.iconColor} bg-white shadow-sm`}>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-500 ${service.iconColor} bg-white dark:bg-zinc-800 shadow-sm`}>
                 <service.icon size={28} />
               </div>
-              <h4 className="text-xl font-bold mb-4 font-display">{service.title}</h4>
-              <p className="text-slate-600 text-sm leading-relaxed">
+              <h4 className="text-xl font-bold mb-4 font-display text-foreground">{service.title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                 {service.desc}
               </p>
             </motion.div>

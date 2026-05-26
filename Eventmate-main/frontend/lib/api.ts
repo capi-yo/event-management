@@ -484,10 +484,72 @@ export const registrationsApi = {
             body: JSON.stringify(data),
         }),
 
+    purchaseWithBank: (eventId: number, data: { ticket_category_id: number }) =>
+        fetchApi<{
+            success: boolean;
+            message: string;
+            data: {
+                registration: unknown;
+                ticket: unknown;
+                transaction_reference: string;
+                amount: number;
+                balance: number;
+            };
+        }>(`/events/${eventId}/purchase-bank`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
     cancelRegistration: (eventId: number) =>
         fetchApi<{ success: boolean }>(`/events/${eventId}/register`, {
             method: 'DELETE',
         }),
+};
+
+// ============ EVENTMATE BANK API ============
+
+export interface BankAccount {
+    id: number;
+    account_number: string;
+    balance: number;
+    currency: string;
+    status: string;
+}
+
+export interface BankTransaction {
+    id: number;
+    reference: string;
+    amount: number;
+    type: string;
+    status: string;
+    description?: string;
+    from_account_number?: string;
+    to_account_number?: string;
+    created_at: string;
+}
+
+export const bankApi = {
+    getAccount: () =>
+        fetchApi<{
+            success: boolean;
+            data: { account: BankAccount; transactions: BankTransaction[] };
+        }>('/bank/account'),
+
+    deposit: (amount: number) =>
+        fetchApi<{
+            success: boolean;
+            message: string;
+            data: { account: BankAccount; reference: string };
+        }>('/bank/deposit', {
+            method: 'POST',
+            body: JSON.stringify({ amount }),
+        }),
+
+    getInfo: () =>
+        fetchApi<{
+            success: boolean;
+            data: { name: string; currency: string; starting_balance: number; max_deposit: number };
+        }>('/bank/info'),
 };
 
 // ============ PUBLIC API ============

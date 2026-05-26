@@ -313,7 +313,7 @@ export default function OrganiserCreateEventPage() {
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                     step >= item.step
-                      ? "border-red-600 bg-red-600 text-white"
+                      ? "border-green-600 bg-green-600 text-white"
                       : theme === "dark"
                         ? "border-slate-700 text-slate-500"
                         : "border-gray-300 text-gray-400"
@@ -342,7 +342,7 @@ export default function OrganiserCreateEventPage() {
                   <div
                     className={`w-12 sm:w-24 h-0.5 mx-2 ${
                       step > item.step
-                        ? "bg-red-600"
+                        ? "bg-green-600"
                         : theme === "dark"
                           ? "bg-slate-700"
                           : "bg-gray-300"

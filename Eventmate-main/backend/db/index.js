@@ -148,6 +148,49 @@ module.exports = {
                 console.log('Admin user check done');
             }
 
+            // EventMate Local Bank tables
+            const bankMigrations = [
+                `CREATE TABLE IF NOT EXISTS bank_accounts (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    account_number VARCHAR(20) UNIQUE NOT NULL,
+                    balance DECIMAL(12, 2) NOT NULL DEFAULT 1000.00,
+                    currency VARCHAR(3) NOT NULL DEFAULT 'ETB',
+                    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'frozen')),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )`,
+                `CREATE TABLE IF NOT EXISTS bank_transactions (
+                    id SERIAL PRIMARY KEY,
+                    reference VARCHAR(32) UNIQUE NOT NULL,
+                    from_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+                    to_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+                    amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+                    type VARCHAR(30) NOT NULL CHECK (type IN ('ticket_purchase', 'deposit', 'withdrawal', 'refund', 'transfer')),
+                    status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'failed', 'reversed')),
+                    registration_id INTEGER REFERENCES registrations(id) ON DELETE SET NULL,
+                    event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )`,
+                'CREATE INDEX IF NOT EXISTS idx_bank_accounts_user_id ON bank_accounts(user_id)',
+                'CREATE INDEX IF NOT EXISTS idx_bank_transactions_reference ON bank_transactions(reference)',
+            ];
+            for (const stmt of bankMigrations) {
+                try {
+                    await pool.query(stmt);
+                } catch (e) {
+                    // Table may already exist
+                }
+            }
+            try {
+                const { backfillAccountsForAllUsers } = require('../utils/bankService');
+                await backfillAccountsForAllUsers();
+                console.log('Bank accounts ready for all users');
+            } catch (e) {
+                console.log('Bank account backfill:', e.message?.substring(0, 60) || 'skipped');
+            }
+
             return true;
         } catch (error) {
             console.error('Error initializing database:', error.message);

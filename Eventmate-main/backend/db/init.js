@@ -237,6 +237,48 @@ const initializeDatabase = async () => {
             console.log('  ✗ discount_value column migration: ' + err.message.substring(0, 50));
         }
 
+        // EventMate Local Bank tables
+        console.log('Running migrations for EventMate Bank...');
+        const bankMigrations = [
+            `CREATE TABLE IF NOT EXISTS bank_accounts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                account_number VARCHAR(20) UNIQUE NOT NULL,
+                balance DECIMAL(12, 2) NOT NULL DEFAULT 1000.00,
+                currency VARCHAR(3) NOT NULL DEFAULT 'ETB',
+                status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'frozen')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS bank_transactions (
+                id SERIAL PRIMARY KEY,
+                reference VARCHAR(32) UNIQUE NOT NULL,
+                from_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+                to_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+                amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+                type VARCHAR(30) NOT NULL CHECK (type IN ('ticket_purchase', 'deposit', 'withdrawal', 'refund', 'transfer')),
+                status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'failed', 'reversed')),
+                registration_id INTEGER REFERENCES registrations(id) ON DELETE SET NULL,
+                event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+        ];
+        for (const stmt of bankMigrations) {
+            try {
+                await pool.query(stmt);
+            } catch (err) {
+                console.log('  ✗ Bank migration: ' + err.message.substring(0, 50));
+            }
+        }
+        try {
+            const { backfillAccountsForAllUsers } = require('../utils/bankService');
+            await backfillAccountsForAllUsers();
+            console.log('  ✓ Bank accounts backfilled for all users');
+        } catch (err) {
+            console.log('  ✗ Bank backfill: ' + err.message.substring(0, 50));
+        }
+
         console.log('\nDatabase initialization complete!');
 
     } catch (error) {

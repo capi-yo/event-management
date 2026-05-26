@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/components/ui/use-toast";
 import { notificationsApi, adminApi } from '@/lib/api';
-import { Send, Users, User, Loader2, Info, AlertCircle, Search, Check, X, Shield, Plus, Trash2 } from 'lucide-react';
+import { Send, Users, User, Loader2, Info, AlertCircle, Search, Check, X, Shield, Plus, Trash2, Bell, Eye, CheckCircle, XCircle, AlertTriangle, CheckSquare } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -28,6 +28,91 @@ export default function AdminNotificationsPage() {
     const [userIds, setUserIds] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+
+    // Received notifications states
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(true);
+    const [filter, setFilter] = useState<'all' | 'unread'>('all');
+    const [selectedNotification, setSelectedNotification] = useState<any>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+    const fetchNotifications = async () => {
+        try {
+            setLoadingNotifications(true);
+            const response = await notificationsApi.getMyNotifications('Administrator');
+            if (response.success) {
+                setNotifications(response.data.notifications);
+            }
+        } catch (err: any) {
+            console.error('Failed to fetch notifications:', err);
+            toast({
+                title: "Error",
+                description: "Failed to load notifications inbox.",
+                variant: "destructive"
+            });
+        } finally {
+            setLoadingNotifications(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const markAsRead = async (id: number) => {
+        try {
+            await notificationsApi.markAsRead(id);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        } catch (err) {
+            console.error('Failed to mark as read:', err);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            await notificationsApi.markAllAsRead();
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            toast({
+                title: "Success",
+                description: "All notifications marked as read."
+            });
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
+        }
+    };
+
+    const handleViewDetails = (notification: any) => {
+        setSelectedNotification(notification);
+        setIsDetailsOpen(true);
+        if (!notification.is_read) {
+            markAsRead(notification.id);
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    const filteredNotifications = notifications.filter(n => {
+        if (filter === 'unread') return !n.is_read;
+        return true;
+    });
+
+    const getTypeIcon = (msgText: string) => {
+        const msg = msgText.toLowerCase();
+        if (msg.includes('approved') || msg.includes('success') || msg.includes('received')) return CheckCircle;
+        if (msg.includes('warning') || msg.includes('refund') || msg.includes('update')) return AlertTriangle;
+        if (msg.includes('error') || msg.includes('failed') || msg.includes('reject')) return XCircle;
+        return Info;
+    };
+
+    const getTypeStyles = (msgText: string) => {
+        const msg = msgText.toLowerCase();
+        if (msg.includes('approved') || msg.includes('success') || msg.includes('received'))
+            return theme === "dark" ? "bg-green-900/20 text-green-400" : "bg-green-100 text-green-600";
+        if (msg.includes('warning') || msg.includes('refund') || msg.includes('update'))
+            return theme === "dark" ? "bg-yellow-900/20 text-yellow-400" : "bg-yellow-100 text-yellow-600";
+        if (msg.includes('error') || msg.includes('failed') || msg.includes('reject'))
+            return theme === "dark" ? "bg-red-900/20 text-red-400" : "bg-red-100 text-red-600";
+        return theme === "dark" ? "bg-blue-900/20 text-blue-400" : "bg-blue-100 text-blue-600";
+    };
 
     // User selection states
     const [searchQuery, setSearchQuery] = useState('');
@@ -66,6 +151,7 @@ export default function AdminNotificationsPage() {
                 setMessage('');
                 setUserIds('');
                 setSelectedUsers([]);
+                fetchNotifications(); // Refresh received feed
             }
         } catch (err: any) {
             toast({
@@ -265,6 +351,152 @@ export default function AdminNotificationsPage() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Received Notifications Inbox */}
+                    <Card className={`mt-6 ${theme === "dark" ? "bg-slate-900 border-slate-800" : ""}`}>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className={theme === "dark" ? "text-slate-100" : ""}>Received Notifications</CardTitle>
+                                <CardDescription className={theme === "dark" ? "text-slate-400" : ""}>Alerts and organizer event updates</CardDescription>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant={filter === 'all' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setFilter('all')}
+                                    className={`h-8 ${theme === "dark" && filter !== 'all' ? "border-slate-700" : ""}`}
+                                >
+                                    All
+                                </Button>
+                                <Button
+                                    variant={filter === 'unread' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => setFilter('unread')}
+                                    className={`h-8 ${theme === "dark" && filter !== 'unread' ? "border-slate-700" : ""}`}
+                                >
+                                    Unread ({unreadCount})
+                                </Button>
+                                {unreadCount > 0 && (
+                                    <Button variant="outline" size="sm" onClick={markAllAsRead} className={`h-8 ${theme === "dark" ? "border-slate-700 hover:bg-slate-800 text-slate-300" : ""}`}>
+                                        <CheckSquare className="h-4 w-4 mr-2" />
+                                        Mark All Read
+                                    </Button>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {loadingNotifications ? (
+                                <div className="flex h-32 items-center justify-center">
+                                    <Loader2 className="h-8 w-8 animate-spin text-crimson" />
+                                </div>
+                            ) : filteredNotifications.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Bell className={`h-12 w-12 mx-auto mb-4 ${theme === "dark" ? "text-slate-600" : "text-muted-foreground"}`} />
+                                    <p className={theme === "dark" ? "text-slate-400" : "text-muted-foreground"}>No notifications received</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {filteredNotifications.map((notification) => {
+                                        const TypeIcon = getTypeIcon(notification.message);
+                                        return (
+                                            <div
+                                                key={notification.id}
+                                                className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${theme === "dark"
+                                                    ? notification.is_read
+                                                        ? "border-slate-800 hover:bg-slate-800/50"
+                                                        : "border-slate-700 bg-slate-800/30 hover:bg-slate-800/70"
+                                                    : notification.is_read
+                                                        ? "border-gray-200 hover:bg-gray-50"
+                                                        : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                                                    }`}
+                                                onClick={() => !notification.is_read && markAsRead(notification.id)}
+                                            >
+                                                <div className={`p-2 rounded-full ${getTypeStyles(notification.message)}`}>
+                                                    <TypeIcon className="h-5 w-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className={`font-medium ${theme === "dark" ? "text-slate-100" : ""}`}>
+                                                            {notification.message.split(':')[0].split('.')[0]}
+                                                        </p>
+                                                        {!notification.is_read && (
+                                                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-sm ${theme === "dark" ? "text-slate-400" : "text-muted-foreground"} mt-1 line-clamp-1`}>
+                                                        {notification.message}
+                                                    </p>
+                                                    <p className={`text-xs ${theme === "dark" ? "text-slate-500" : "text-muted-foreground"} mt-2`}>
+                                                        {new Date(notification.sent_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className={`h-8 w-8 ${theme === "dark" ? "text-slate-400 hover:bg-slate-800" : ""}`}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleViewDetails(notification);
+                                                        }}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Details Dialog */}
+                    <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+                        <DialogContent className={`sm:max-w-[500px] ${theme === "dark" ? "bg-slate-900 border-slate-800" : ""}`}>
+                            <DialogHeader>
+                                <DialogTitle className={`flex items-center gap-2 ${theme === "dark" ? "text-slate-100" : ""}`}>
+                                    <Bell className="h-5 w-5 text-crimson" />
+                                    Notification Details
+                                </DialogTitle>
+                                <DialogDescription className={theme === "dark" ? "text-slate-400" : ""}>
+                                    Full message content and details.
+                                </DialogDescription>
+                            </DialogHeader>
+                            {selectedNotification && (
+                                <div className="space-y-6 py-4">
+                                    <div className={`p-4 rounded-lg ${theme === "dark" ? "bg-slate-800/50 border border-slate-700" : "bg-muted/50 border border-muted-foreground/10"}`}>
+                                        <p className={`text-sm leading-relaxed ${theme === "dark" ? "text-slate-200" : "text-foreground"}`}>
+                                            {selectedNotification.message}
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Type</p>
+                                            <Badge className={getTypeStyles(selectedNotification.message)}>
+                                                {selectedNotification.message.toLowerCase().includes('approval') ? 'Approval Request' :
+                                                    selectedNotification.message.toLowerCase().includes('update') ? 'Event Update' : 'System'}
+                                            </Badge>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Received</p>
+                                            <p className={`text-sm ${theme === "dark" ? "text-slate-300" : ""}`}>
+                                                {new Date(selectedNotification.sent_at).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    onClick={() => setIsDetailsOpen(false)}
+                                    className="bg-crimson hover:bg-crimson-dark text-white font-semibold"
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 <div className="space-y-6">

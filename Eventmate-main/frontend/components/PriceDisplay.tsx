@@ -111,7 +111,7 @@ export default function PriceDisplay({
           {format(finalOriginal)}
         </span>
         <span className="text-zinc-400 text-xs">→</span>
-        <span className={cn("text-crimson dark:text-red-500 font-black", activeSize.discounted)}>
+        <span className={cn("text-crimson dark:text-emerald-400 font-black", activeSize.discounted)}>
           {format(finalDiscounted)}
         </span>
       </div>

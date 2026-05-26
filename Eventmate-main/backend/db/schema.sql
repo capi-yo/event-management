@@ -133,3 +133,34 @@ CREATE TABLE IF NOT EXISTS reports (
     status VARCHAR(50) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Resolved', 'Dismissed')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- EventMate Local Bank (virtual wallet per user)
+CREATE TABLE IF NOT EXISTS bank_accounts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    account_number VARCHAR(20) UNIQUE NOT NULL,
+    balance DECIMAL(12, 2) NOT NULL DEFAULT 1000.00,
+    currency VARCHAR(3) NOT NULL DEFAULT 'ETB',
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'frozen')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS bank_transactions (
+    id SERIAL PRIMARY KEY,
+    reference VARCHAR(32) UNIQUE NOT NULL,
+    from_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+    to_account_id INTEGER REFERENCES bank_accounts(id) ON DELETE SET NULL,
+    amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+    type VARCHAR(30) NOT NULL CHECK (type IN ('ticket_purchase', 'deposit', 'withdrawal', 'refund', 'transfer')),
+    status VARCHAR(20) NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'failed', 'reversed')),
+    registration_id INTEGER REFERENCES registrations(id) ON DELETE SET NULL,
+    event_id INTEGER REFERENCES events(id) ON DELETE SET NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bank_accounts_user_id ON bank_accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_bank_transactions_from ON bank_transactions(from_account_id);
+CREATE INDEX IF NOT EXISTS idx_bank_transactions_to ON bank_transactions(to_account_id);
+CREATE INDEX IF NOT EXISTS idx_bank_transactions_reference ON bank_transactions(reference);

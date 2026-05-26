@@ -66,7 +66,7 @@ export default function FavoritesPage() {
             <div className="flex min-h-screen flex-col">
                 <AuthNavbar />
                 <main className="flex-1 flex items-center justify-center mt-16">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
                 </main>
                 <Footer />
             </div>
@@ -98,7 +98,7 @@ export default function FavoritesPage() {
 
                     {loading && (
                         <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson mx-auto"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
                             <p className="mt-4 text-muted-foreground">Loading your favorites...</p>
                         </div>
                     )}
@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                             <Heart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                             <h2 className="text-xl font-semibold mb-2">No saved events</h2>
                             <p className="text-muted-foreground mb-4">Save events you are interested in to see them here</p>
-                            <Button asChild className="bg-crimson hover:bg-crimson-dark">
+                            <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
                                 <Link href="/events">Explore Events</Link>
                             </Button>
                         </div>
@@ -147,29 +147,29 @@ export default function FavoritesPage() {
                                             </span>
                                         </div>
                                         <button
-                                            className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full shadow-sm text-crimson hover:scale-110 transition-transform"
+                                            className="absolute top-2.5 right-2.5 h-8 w-8 flex items-center justify-center bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full shadow-sm text-emerald-600 hover:scale-110 transition-transform"
                                             onClick={() => handleRemoveFavorite(event.id)}
                                             disabled={removingId === event.id}
                                         >
-                                            {removingId === event.id ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Heart className="h-4 w-4 fill-current" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    <div className="p-5 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
-                                        <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-crimson transition-colors">{event.title}</h3>
-                                        <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="h-3.5 w-3.5 text-crimson" />
-                                                <span>{formatDate(event.date)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <MapPin className="h-3.5 w-3.5 text-crimson" />
-                                                <span className="line-clamp-1">{event.location_venue || event.location || 'Location TBD'}</span>
-                                            </div>
+                                                {removingId === event.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Heart className="h-4 w-4 fill-current" />
+                                                )}
+                                            </button>
                                         </div>
+                                        <div className="p-5 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
+                                            <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-emerald-600 transition-colors">{event.title}</h3>
+                                            <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Calendar className="h-3.5 w-3.5 text-emerald-600" />
+                                                    <span>{formatDate(event.date)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                                                    <span className="line-clamp-1">{event.location_venue || event.location || 'Location TBD'}</span>
+                                                </div>
+                                            </div>
                                     </div>
                                 </div>
                             ))}

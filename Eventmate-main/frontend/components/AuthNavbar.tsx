@@ -27,6 +27,7 @@ const AuthNavbar = () => {
   const navLinks = [
     { name: 'Events', href: '/events' },
     { name: 'My Events', href: '/my-events' },
+    { name: 'Wallet', href: '/wallet' },
     { name: 'Favorites', href: '/favorites' },
     { name: 'Profile', href: '/profile' },
   ];

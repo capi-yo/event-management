@@ -341,7 +341,7 @@ export default function AdminDashboard() {
                         </Card>
                     </Link>
 
-                    <Link href="/admin/content" className="block h-full">
+                    <Link href="/admin/events" className="block h-full">
                         <Card className={`h-full transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer ${theme === "dark" ? "border-slate-800 bg-slate-900" : ""}`}>
                             <CardContent className="p-6 flex flex-col h-full">
                                 <div className="flex items-center justify-between">

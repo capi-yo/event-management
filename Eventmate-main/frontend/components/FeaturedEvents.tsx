@@ -95,7 +95,7 @@ const FeaturedEvents = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               onClick={() => router.push('/login')}
-              className="habesha-event-card group relative bg-white cursor-pointer"
+              className="habesha-event-card group relative bg-white dark:bg-zinc-900/50 cursor-pointer"
             >
               <div className="relative h-80 overflow-hidden">
                 <img
@@ -105,7 +105,7 @@ const FeaturedEvents = () => {
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-6 left-6">
-                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-white/90 backdrop-blur-sm ${index === 0 ? 'text-crimson' : 'text-slate-800'}`}>
+                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest bg-white/90 dark:bg-zinc-800/90 backdrop-blur-sm ${index === 0 ? 'text-crimson' : 'text-slate-800 dark:text-slate-100'}`}>
                     {event.category}
                   </span>
                 </div>
@@ -114,8 +114,8 @@ const FeaturedEvents = () => {
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h4 className="text-2xl font-bold font-display mb-2">{event.title}</h4>
-                    <div className="flex flex-col gap-2 text-slate-500 text-sm">
+                    <h4 className="text-2xl font-bold font-display mb-2 text-foreground">{event.title}</h4>
+                    <div className="flex flex-col gap-2 text-slate-500 dark:text-slate-400 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} className="text-crimson" />
                         {formatDate(event.date)}
@@ -126,12 +126,12 @@ const FeaturedEvents = () => {
                       </div>
                     </div>
                   </div>
-                  <button className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-crimson group-hover:text-white transition-colors duration-300">
+                  <button className="w-12 h-12 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-crimson group-hover:text-white transition-colors duration-300">
                     <ArrowUpRight size={20} />
                   </button>
                 </div>
                 
-                <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-6 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
                   <PriceDisplay
                     price={event.min_price}
                     discountType={event.discount_type}

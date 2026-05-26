@@ -52,7 +52,7 @@ import {
     ChevronRight
 } from "lucide-react"
 import { useAuth } from '@/components/AuthContext'
-import { eventsApi } from '@/lib/api'
+import { eventsApi, API_BASE_URL } from '@/lib/api'
 import { useActionFeedbackMap } from '@/hooks/useButtonFeedback'
 
 export default function OrganiserAttendeesPage() {
@@ -580,8 +580,16 @@ export default function OrganiserAttendeesPage() {
                                             <p className={`font-medium mt-1 ${theme === "dark" ? "text-slate-100" : ""}`}>{selectedAttendee.payment_method}</p>
                                         </div>
                                         <div>
-                                            <p className={`text-xs uppercase tracking-widest font-bold ${theme === "dark" ? "text-slate-500" : "text-muted-foreground"}`}>Transaction Ref</p>
-                                            <p className={`font-mono text-sm font-bold mt-1 text-crimson`}>{selectedAttendee.transaction_ref}</p>
+                                            <p className={`text-xs uppercase tracking-widest font-bold ${theme === "dark" ? "text-slate-500" : "text-muted-foreground"}`}>Transaction Ref / Receipt</p>
+                                            {selectedAttendee.transaction_ref && selectedAttendee.transaction_ref.startsWith('/uploads/') ? (
+                                                <div className="mt-2">
+                                                    <a href={`${API_BASE_URL}${selectedAttendee.transaction_ref}`} target="_blank" rel="noopener noreferrer">
+                                                        <img src={`${API_BASE_URL}${selectedAttendee.transaction_ref}`} alt="Receipt screenshot" className="max-h-48 rounded-xl border border-zinc-200 dark:border-zinc-700 object-contain shadow-sm cursor-zoom-in hover:opacity-90 transition-opacity" />
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <p className={`font-mono text-sm font-bold mt-1 text-crimson`}>{selectedAttendee.transaction_ref || 'N/A'}</p>
+                                            )}
                                         </div>
                                     </>
                                 )}

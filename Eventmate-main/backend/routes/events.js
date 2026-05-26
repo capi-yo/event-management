@@ -6,6 +6,7 @@ const { eventValidation, registrationValidation } = require('../middleware/valid
 const { logger } = require('../utils/logger');
 const { createNotification } = require('../utils/notify');
 const { normalizePercentageDiscount, enrichTicketCategory, calculateDiscountedPrice } = require('../utils/pricing');
+const { purchaseTicketWithBank } = require('../utils/bankService');
 const multer = require('multer');
 const path = require('path');
 
@@ -41,7 +42,7 @@ const router = express.Router();
  * Public endpoint to browse and search events (FREQ-4)
  * Query params: category, date, search, page, limit
  */
-router.post('/upload', authenticate, isOrganizer, upload.single('image'), (req, res) => {
+router.post('/upload', authenticate, upload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
@@ -1026,6 +1027,21 @@ router.put('/:id', authenticate, isOrganizer, async (req, res) => {
             console.error('Failed to send update notifications to registered users:', notifyError);
         }
 
+        // Notify all Administrators of the event update
+        try {
+            const adminsResult = await db.query("SELECT id FROM users WHERE role = 'Administrator'");
+            for (const admin of adminsResult.rows) {
+                await createNotification(
+                    admin.id,
+                    `Organizer "${req.user.name}" has updated the event: "${updatedEvent.title}".`,
+                    null,
+                    'Administrator'
+                );
+            }
+        } catch (adminNotifyError) {
+            console.error('Error notifying administrators of event update:', adminNotifyError);
+        }
+
         // Log event update
         await logger.log({
             userId: req.user.id,
@@ -1412,6 +1428,83 @@ router.post('/:id/purchase', authenticate, registrationValidation.purchase, asyn
         res.status(500).json({
             success: false,
             message: 'Error purchasing ticket'
+        });
+    }
+});
+
+/**
+ * POST /events/:id/purchase-bank
+ * Purchase tickets using EventMate Local Bank (instant payment)
+ */
+router.post('/:id/purchase-bank', authenticate, registrationValidation.purchaseBank, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ticket_category_id } = req.body;
+
+        const result = await purchaseTicketWithBank(req.user.id, parseInt(id), ticket_category_id);
+
+        if (result.error) {
+            return res.status(result.status || 400).json({
+                success: false,
+                message: result.error
+            });
+        }
+
+        const { registration, ticket, transactionReference, amount, buyerBalance, event, ticketCategory } = result;
+
+        await logger.log({
+            userId: req.user.id,
+            action: 'Purchase ticket (EventMate Bank)',
+            entityType: 'registration',
+            entityId: registration.id,
+            details: {
+                event_id: parseInt(id),
+                event_title: event.title,
+                ticket_type: ticketCategory.name,
+                ticket_category_id,
+                payment_method: 'EventMateBank',
+                transaction_ref: transactionReference,
+                amount
+            },
+            ipAddress: req.ip || req.connection.remoteAddress
+        });
+
+        await createNotification(
+            req.user.id,
+            `Payment of ETB ${amount.toFixed(2)} successful for "${event.title}". Your ticket is confirmed.`,
+            {
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                venue: event.location_venue,
+                city: event.city,
+                country: event.country,
+            },
+            'User'
+        );
+        await createNotification(
+            event.organizer_id,
+            `New ticket sale for "${event.title}" (${ticketCategory.name}) — ETB ${amount.toFixed(2)} via EventMate Bank.`,
+            null,
+            'Organizer'
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Payment successful. Your ticket is confirmed.',
+            data: {
+                registration,
+                ticket,
+                transaction_reference: transactionReference,
+                amount,
+                balance: buyerBalance,
+            }
+        });
+    } catch (error) {
+        console.error('Bank purchase error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error processing bank payment'
         });
     }
 });

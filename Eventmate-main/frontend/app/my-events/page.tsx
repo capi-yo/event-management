@@ -52,7 +52,7 @@ export default function MyEventsPage() {
             <div className="flex min-h-screen flex-col">
                 <AuthNavbar />
                 <main className="flex-1 flex items-center justify-center mt-16">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
                 </main>
                 <Footer />
             </div>
@@ -115,14 +115,14 @@ export default function MyEventsPage() {
                 </div>
             </div>
             <div className="p-5 cursor-pointer" onClick={() => router.push(`/events/${event.id}`)}>
-                <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-crimson transition-colors">{event.title}</h3>
+                <h3 className="text-base font-bold line-clamp-1 mb-2 text-foreground group-hover:text-emerald-600 transition-colors">{event.title}</h3>
                 <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 text-crimson" />
+                        <Calendar className="h-3.5 w-3.5 text-emerald-600" />
                         <span>{formatDate(event.date)} at {event.time}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-crimson" />
+                        <MapPin className="h-3.5 w-3.5 text-emerald-600" />
                         <span className="line-clamp-1">{event.location_venue || event.location || 'Location TBD'}</span>
                     </div>
                 </div>
@@ -142,7 +142,7 @@ export default function MyEventsPage() {
 
                     {loading && (
                         <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-crimson mx-auto"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
                             <p className="mt-4 text-muted-foreground">Loading your events...</p>
                         </div>
                     )}
@@ -165,7 +165,7 @@ export default function MyEventsPage() {
                             <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                             <h2 className="text-xl font-semibold mb-2">No events yet</h2>
                             <p className="text-muted-foreground mb-4">Start discovering events and register for ones you love</p>
-                            <Button asChild className="bg-crimson hover:bg-crimson-dark">
+                            <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
                                 <Link href="/events">Explore Events</Link>
                             </Button>
                         </div>

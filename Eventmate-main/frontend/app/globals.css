@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "leaflet/dist/leaflet.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-crimson: var(--crimson);
@@ -121,10 +121,10 @@
   --tw-zinc-500: #3f3f46;
   --tw-zinc-600: #27272a;
 
-  /* Accent red — CTAs, highlights (backward-compat aliases) */
-  --crimson: var(--habesha-red-bright);
-  --crimson-dark: var(--habesha-red);
-  --crimson-light: #D32F2F;
+  /* Accent green (formerly crimson red) — CTAs, highlights (aligned to Habesha Green) */
+  --crimson: var(--habesha-green);
+  --crimson-dark: #0A3720;
+  --crimson-light: var(--habesha-green-mid);
 
   /* Tilet pattern — visible but readable */
   --tilet-opacity: 0.15;
@@ -204,9 +204,9 @@
   --tw-zinc-500: #d4d4d8;
   --tw-zinc-600: #e4e4e7;
 
-  --crimson: var(--habesha-red-bright);
-  --crimson-dark: var(--habesha-red);
-  --crimson-light: #EF5350;
+  --crimson: var(--habesha-green-mid);
+  --crimson-dark: var(--habesha-green);
+  --crimson-light: #3DA870;
 
   --tilet-opacity: 0.18;
   --tilet-opacity-secondary: 0.09;

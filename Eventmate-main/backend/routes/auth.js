@@ -7,6 +7,7 @@ const { authenticate } = require('../middleware/auth');
 const { logger } = require('../utils/logger');
 const crypto = require('crypto');
 const transporter = require('../utils/mailer');
+const { ensureBankAccount } = require('../utils/bankService');
 
 const router = express.Router();
 
@@ -53,6 +54,12 @@ router.post('/register', userValidation.register, async (req, res) => {
         );
 
         const user = result.rows[0];
+
+        try {
+            await ensureBankAccount(user.id);
+        } catch (bankErr) {
+            console.error('Failed to create bank account on register:', bankErr);
+        }
 
         // Log the registration
         await logger.log({
@@ -159,6 +166,12 @@ router.post('/login', userValidation.login, async (req, res) => {
             });
         }
 
+        try {
+            await ensureBankAccount(user.id);
+        } catch (bankErr) {
+            console.error('Failed to ensure bank account on login:', bankErr);
+        }
+
         // Log the login
         await logger.log({
             userId: user.id,
@@ -260,6 +273,12 @@ router.post('/verify', userValidation.verify, async (req, res) => {
             'UPDATE users SET is_verified = true, verification_code = NULL, verification_code_expires = NULL WHERE id = $1',
             [user.id]
         );
+
+        try {
+            await ensureBankAccount(user.id);
+        } catch (bankErr) {
+            console.error('Failed to ensure bank account on verify:', bankErr);
+        }
 
         const token = jwt.sign(
             { userId: user.id },

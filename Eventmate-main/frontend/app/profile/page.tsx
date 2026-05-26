@@ -202,7 +202,7 @@ export default function ProfilePage() {
             <div className="flex min-h-screen flex-col">
                 <AuthNavbar />
                 <main className="flex-1 flex items-center justify-center mt-16">
-                    <Loader2 className="h-10 w-10 animate-spin text-crimson" />
+                    <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
                 </main>
                 <Footer />
             </div>
@@ -230,9 +230,9 @@ export default function ProfilePage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                                    <Avatar className="h-24 w-24 ring-2 ring-offset-2 ring-crimson/30 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                    <Avatar className="h-24 w-24 ring-2 ring-offset-2 ring-emerald-500/30 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                         <AvatarImage src={avatarSrc} alt={displayName || 'User'} />
-                                        <AvatarFallback className="bg-crimson text-white text-2xl">
+                                        <AvatarFallback className="bg-emerald-600 text-white text-2xl">
                                             {displayName ? getInitials(displayName) : 'U'}
                                         </AvatarFallback>
                                     </Avatar>
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                                                 <FeedbackButton
                                                     type="button"
                                                     size="sm"
-                                                    className="bg-crimson hover:bg-crimson/90 text-white"
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                                     onClick={handleAvatarUpload}
                                                     loading={uploadingAvatar}
                                                     feedback={avatarSaveFeedback.feedback}
@@ -343,7 +343,7 @@ export default function ProfilePage() {
 
                                     <FeedbackButton
                                         type="submit"
-                                        className="bg-crimson hover:bg-crimson/90 text-white"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                         loading={savingProfile}
                                         feedback={profileSaveFeedback.feedback}
                                         defaultLabel="Save Changes"
@@ -431,7 +431,7 @@ export default function ProfilePage() {
 
                                     <FeedbackButton
                                         type="submit"
-                                        className="bg-crimson hover:bg-crimson/90 text-white"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                         loading={changingPassword}
                                         feedback={passwordSaveFeedback.feedback}
                                         defaultLabel="Change Password"
@@ -444,14 +444,14 @@ export default function ProfilePage() {
                         </Card>
 
                         {/* ━━━ LOGOUT ━━━ */}
-                        <Card className="border-destructive/30">
+                        <Card className="border-emerald-500/20">
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="font-semibold">Sign Out</h3>
                                         <p className="text-sm text-muted-foreground">Sign out of your EventMate account</p>
                                     </div>
-                                    <Button variant="destructive" onClick={handleLogout} className="cursor-pointer">
+                                    <Button variant="outline" onClick={handleLogout} className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 cursor-pointer">
                                         <LogOut className="mr-2 h-4 w-4" /> Log Out
                                     </Button>
                                 </div>

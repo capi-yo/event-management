@@ -321,6 +321,15 @@ const registrationValidation = {
             .isLength({ max: 255 })
             .withMessage('Transaction reference cannot exceed 255 characters'),
         validate
+    ],
+    purchaseBank: [
+        param('id')
+            .isInt({ min: 1 })
+            .withMessage('Event ID must be a positive integer'),
+        body('ticket_category_id')
+            .isInt({ min: 1 })
+            .withMessage('Ticket category ID is required and must be a positive integer'),
+        validate
     ]
 };
 

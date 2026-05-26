@@ -48,7 +48,7 @@ import {
     Mail,
     Check
 } from "lucide-react"
-import { adminApi } from '@/lib/api'
+import { adminApi, API_BASE_URL } from '@/lib/api'
 import { useToast } from "@/components/ui/use-toast"
 import { FeedbackButton } from '@/components/FeedbackButton'
 import { useActionFeedbackMap, useButtonFeedback } from '@/hooks/useButtonFeedback'
@@ -504,10 +504,18 @@ export default function AdminRegistrationsPage() {
                                     <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Payment Method</p>
                                     <p className="font-medium">{selectedRegistration.payment_method || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Transaction Ref</p>
-                                    <p className="font-medium">{selectedRegistration.transaction_ref || 'N/A'}</p>
-                                </div>
+                                 <div>
+                                     <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Transaction Ref / Receipt</p>
+                                     {selectedRegistration.transaction_ref && selectedRegistration.transaction_ref.startsWith('/uploads/') ? (
+                                         <div className="mt-2">
+                                             <a href={`${API_BASE_URL}${selectedRegistration.transaction_ref}`} target="_blank" rel="noopener noreferrer">
+                                                 <img src={`${API_BASE_URL}${selectedRegistration.transaction_ref}`} alt="Receipt screenshot" className="max-h-48 rounded-xl border border-zinc-200 dark:border-zinc-700 object-contain shadow-sm cursor-zoom-in hover:opacity-90 transition-opacity" />
+                                             </a>
+                                         </div>
+                                     ) : (
+                                         <p className="font-medium">{selectedRegistration.transaction_ref || 'N/A'}</p>
+                                     )}
+                                 </div>
                                 <div className="col-span-2">
                                     <p className={theme === "dark" ? "text-slate-400" : "text-gray-500"}>Status</p>
                                     <Badge className={`mt-1 ${getStatusBadge(selectedRegistration.status)}`}>

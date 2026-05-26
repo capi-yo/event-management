@@ -231,7 +231,7 @@ export default function OrganiserDashboard() {
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <Button variant="ghost" size="icon" asChild>
-                                                            <Link href={`/events`}>
+                                                            <Link href={`/events/${event.id}`}>
                                                                 <Eye className="h-4 w-4" />
                                                             </Link>
                                                         </Button>

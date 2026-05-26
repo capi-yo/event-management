@@ -8,7 +8,7 @@ const RESET_MS = 1000;
 
 export function useButtonFeedback(resetMs = RESET_MS) {
     const [feedback, setFeedback] = useState<FeedbackType>('idle');
-    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+    const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
         return () => {
